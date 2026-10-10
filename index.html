@@ -213,8 +213,11 @@ tr.fora td{color:var(--muted)}
 #sim.m-cartao .sim-card{border:0}
 #sim:not(.m-cartao) .sheet{grid-auto-flow:row;grid-template-columns:minmax(0,1fr);grid-template-rows:none;gap:2px}
 #sim .area-h{margin-bottom:4px}
-.simopt{display:flex;flex-wrap:wrap;gap:8px}
-.simopt .chip small{display:block;font-size:.72rem;color:var(--muted)}
+.simgrid{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:6px 0 14px}
+.simgrid .chip{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2px;padding:9px 12px;border-radius:18px}
+.simgrid .chip small{display:block;font-size:.72rem;color:var(--muted)}
+.chip[aria-pressed=true] small{color:inherit;opacity:.9}
+.simcols{display:grid;gap:4px 28px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin:0 0 6px}
 @media(max-width:800px){.sim-t{font-size:1.3rem}}
 .enun-top{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin:6px 0 10px}
 .dtier{display:grid;gap:10px;grid-template-columns:repeat(3,1fr);margin-top:10px}
@@ -347,8 +350,8 @@ for(const m of MANIFEST){
   EXAMS["enem"+m.ano] = {id:"enem"+m.ano, ano:m.ano, nome:"ENEM "+m.ano, sigla:"ENEM "+m.ano, areas:m.areas,
     cores:{1:(m.cores&&m.cores["1"])||[],2:(m.cores&&m.cores["2"])||[]}, langs:m.langs||[], info:m, dados:null};
 }
-const COR_HEX = {AZUL:"#2563eb",AMARELA:"#facc15",BRANCA:"#ffffff",ROSA:"#f472b6",CINZA:"#9ca3af"};
-const COR_NOME = {AZUL:"Azul",AMARELA:"Amarela",BRANCA:"Branca",ROSA:"Rosa",CINZA:"Cinza"};
+const COR_HEX = {AZUL:"#2563eb",AMARELA:"#facc15",BRANCA:"#ffffff",ROSA:"#f472b6",CINZA:"#9ca3af",VERDE:"#16a34a"};
+const COR_NOME = {AZUL:"Azul",AMARELA:"Amarela",BRANCA:"Branca",ROSA:"Rosa",CINZA:"Cinza",VERDE:"Verde"};
 const LETRAS = ["A","B","C","D","E"];
 const KEY = "correcao_enem_v3", KEY_V2 = "correcao_enem_v2", KEY_TEMA = "correcao_enem_tema";
 const GRID = Array.from({length:40},(_,i)=>-4+8*i/39);
@@ -850,16 +853,17 @@ function abrirSetup(){
 function renderSetup(){
   const c=SIMCFG, d=simDiaDe(c.esc), ar=simAreasDe(c.esc), tl=ar.some(a=>AREAS[a].lang);
   const dias=[...new Set(Object.keys(AREAS).map(a=>AREAS[a].dia))].sort();
-  const opt=(v,t,sub)=>`<button type="button" class="chip" aria-pressed="${c.esc===v}" data-act="simEsc" data-v="${v}">${t}<small>${sub}</small></button>`;
+  const opt=(v,t,sub)=>`<button type="button" class="chip" aria-pressed="${c.esc===v}" data-act="simEsc" data-v="${v}"><span>${t}</span><small>${sub}</small></button>`;
   let h=`<h3>Simulado ${EX.nome}</h3><p class="hint" style="margin:4px 0 12px">O caderno oficial do INEP abre ao lado do seu cartão-resposta. O tempo corre mesmo se você recarregar a página, como na prova.</p>
-    <span class="lbl">O que você vai fazer</span><div class="simopt" style="margin:6px 0 14px">${dias.map(x=>{ const aa=Object.keys(AREAS).filter(k=>AREAS[k].dia===x); return opt("d"+x,`Dia ${x} inteiro`,aa.map(k=>AREA_CURTO[k]).join(" + ")+" · "+aa.length*45+" questões"); }).join("")}${Object.keys(AREAS).map(a=>opt("a:"+a,"Só "+AREA_CURTO[a],"45 questões · dia "+AREAS[a].dia)).join("")}</div>
-    <span class="lbl">Caderno do dia ${d} (cor da capa)</span><div class="row" style="margin:6px 0 14px">${(CORES[d]||[]).map(k=>`<button type="button" class="chip" aria-pressed="${S.cor[d]===k}" data-act="simCor" data-d="${d}" data-c="${k}"><span class="dot" style="background:${COR_HEX[k]}"></span>${COR_NOME[k]}</button>`).join("")}</div>`;
-  if(tl) h+=`<span class="lbl">Idioma da prova</span><div class="row" style="margin:6px 0 14px">${EX.langs.map((t,v)=>`<button type="button" class="chip" aria-pressed="${S.lang===v}" data-act="simLang" data-l="${v}">${t}</button>`).join("")}</div>`;
-  h+=`<span class="lbl">Tempo de prova</span><div class="row" style="margin:6px 0 4px;align-items:center"><input id="simH" class="tmp" type="number" min="0" max="10" step="1" value="${Math.floor(c.min/60)}" aria-label="Horas"><span>h</span><input id="simM" class="tmp" type="number" min="0" max="59" step="5" value="${c.min%60}" aria-label="Minutos"><span>min</span><span class="hint" id="simMinTxt">${fmtMin(c.min)} · padrão ${fmtMin(simMinPadrao(c.esc))}${c.esc[0]==="d"?" (dia da prova)":" (45 questões a 3min40s)"}</span></div>
-    <label class="hint" style="display:flex;gap:8px;align-items:center;margin:10px 0 0"><input type="checkbox" id="simAuto" ${c.auto?"checked":""}> Ao zerar o tempo, travar o cartão e corrigir sozinho</label>`;
+    <span class="lbl">Dia inteiro</span><div class="simgrid">${dias.map(x=>{ const aa=Object.keys(AREAS).filter(k=>AREAS[k].dia===x); return opt("d"+x,`Dia ${x}`,aa.map(k=>AREA_CURTO[k]).join(" + ")+" · "+aa.length*45+" questões"); }).join("")}</div>
+    <span class="lbl">Só uma área</span><div class="simgrid">${Object.keys(AREAS).map(a=>opt("a:"+a,AREA_CURTO[a],"45 questões · dia "+AREAS[a].dia)).join("")}</div>
+    <div class="simcols"><div><span class="lbl">Caderno do dia ${d} (cor da capa)</span><div class="row" style="margin:6px 0 14px">${(CORES[d]||[]).map(k=>`<button type="button" class="chip" aria-pressed="${S.cor[d]===k}" data-act="simCor" data-d="${d}" data-c="${k}"><span class="dot" style="background:${COR_HEX[k]||"#ccc"}"></span>${COR_NOME[k]||k}</button>`).join("")}</div></div>
+    ${tl?`<div><span class="lbl">Idioma da prova</span><div class="row" style="margin:6px 0 14px">${EX.langs.map((t,v)=>`<button type="button" class="chip" aria-pressed="${S.lang===v}" data-act="simLang" data-l="${v}">${t}</button>`).join("")}</div></div>`:""}</div>
+    <div class="simcols"><div><span class="lbl">Tempo de prova</span><div class="row" style="margin:6px 0 4px;align-items:center"><input id="simH" class="tmp" type="number" min="0" max="10" step="1" value="${Math.floor(c.min/60)}" aria-label="Horas"><span>h</span><input id="simM" class="tmp" type="number" min="0" max="59" step="5" value="${c.min%60}" aria-label="Minutos"><span>min</span></div><span class="hint" id="simMinTxt">${fmtMin(c.min)} · padrão ${fmtMin(simMinPadrao(c.esc))}${c.esc[0]==="d"?" (dia da prova)":" (45 questões a 3min40s)"}</span></div>
+    <label class="hint" style="display:flex;gap:8px;align-items:flex-start;margin:22px 0 0"><input type="checkbox" id="simAuto" ${c.auto?"checked":""} style="margin-top:3px"> <span>Ao zerar o tempo, travar o cartão e corrigir sozinho</span></label></div>`;
   const falta=[]; if(!S.cor[d]) falta.push("a cor do caderno"); if(tl&&S.lang===null) falta.push("o idioma");
-  if(falta.length) h+=`<div class="note" style="margin-top:12px">Escolha ${falta.join(" e ")} para começar.</div>`;
-  else if(!simUrl(d)) h+=`<div class="note" style="margin-top:12px">Não tenho o link do PDF deste caderno. O simulado funciona só com o cartão; abra o caderno no <a href="${LINK_INEP}" target="_blank" rel="noopener">site do INEP</a>.</div>`;
+  if(falta.length) h+=`<div class="note" style="margin-top:8px">Escolha ${falta.join(" e ")} para começar.</div>`;
+  else if(!simUrl(d)) h+=`<div class="note" style="margin-top:8px">Não tenho o link do PDF deste caderno. O simulado funciona só com o cartão; abra o caderno no <a href="${LINK_INEP}" target="_blank" rel="noopener">site do INEP</a>.</div>`;
   h+=`<div class="modal-act"><button class="btn" type="button" data-act="fechar">Cancelar</button><button class="btn pri" type="button" data-act="simGo" ${falta.length?"disabled":""}>Começar agora</button></div>`;
   abrirModal(h); $("modalCard").classList.add("wide");
 }
@@ -993,7 +997,7 @@ function simPerguntarFim(){
 
 /* ---------- confirmar e corrigir ---------- */
 function abrirModal(html){ $("modalCard").innerHTML=html; $("modal").classList.remove("hidden"); const b=$("modalCard").querySelector("button.pri,button"); if(b) b.focus(); }
-function fecharModal(){ $("modal").classList.add("hidden"); $("modalCard").innerHTML=""; $("modalCard").classList.remove("wide"); }
+function fecharModal(){ CONF_OK=null; $("modal").classList.add("hidden"); $("modalCard").innerHTML=""; $("modalCard").classList.remove("wide"); }
 function abrirEnun(a,j){
   const r=analisarC(a), it=r.itens[j], pos=AREAS[a].base+j, v=S.ans[a][j], cor=S.cor[AREAS[a].dia], fora=it[0]===null;
   const res=fora?"":(r.ok[j]?'<span class="pos">Acertou</span>':'<span class="neg">Errou</span>'), dd=fora?null:dificuldade(a,it[1]);
@@ -1110,20 +1114,29 @@ function salvarHist(nomeOpt,quieto){
   const pn=panDe(S); S.hist.push({id:Date.now(),t:Date.now(),nn:n._n,nome:nome.slice(0,60),...copia,notas,pan:pn.n?{ac:pn.ac,er:pn.er,br:pn.br,tot:pn.tot,n:pn.n}:null}); if(S.hist.length>100) S.hist.shift();
   salvar(); if(!quieto){ renderPane(); toast("Simulado salvo no histórico."); }
 }
+/* confirmação própria do site (substitui o confirm() nativo do navegador) */
+let CONF_OK=null;
+function confirmar(titulo,texto,ok,aoOk,perigo){
+  CONF_OK=aoOk;
+  abrirModal(`<h3>${titulo}</h3><p style="margin:6px 0 0">${texto}</p><div class="modal-act"><button class="btn${perigo?"":" pri"}" type="button" data-act="fechar">Cancelar</button><button class="btn ${perigo?"danger":"pri"}" type="button" data-act="confOk">${ok}</button></div>`);
+  if(perigo){ const c=$("modalCard").querySelector("button"); if(c) c.focus(); }
+}
 function novoSim(){
   const temDados=Object.values(S.ans).some(v=>v.some(x=>x!==""));
-  if(temDados&&!confirm("Começar um novo simulado limpa o cartão atual"+(S.hist.length?" (o histórico fica).":". Você ainda não salvou nenhum simulado no histórico.")+" Continuar?")) return;
-  const h=S.hist, ex=novoEstado(EX); Object.assign(S,ex,{hist:h,tab:Object.keys(AREAS)[0]}); salvar(); renderPane(); toast("Novo simulado pronto.");
+  const fazer=()=>{ const h=S.hist, ex=novoEstado(EX); Object.assign(S,ex,{hist:h,tab:Object.keys(AREAS)[0]}); salvar(); renderPane(); toast("Novo simulado pronto."); };
+  if(!temDados){ fazer(); return; }
+  confirmar("Começar um novo simulado?","Isso limpa o cartão atual"+(S.hist.length?". O histórico fica.":". Você ainda não salvou nenhum simulado no histórico, então este preenchimento será perdido."),"Limpar e começar",fazer,true);
 }
 function abrirHist(id){
   const h=S.hist.find(x=>x.id===id); if(!h) return;
-  if(!confirm(`Abrir "${h.nome}" no cartão? Isso substitui o preenchimento atual (o histórico fica).`)) return;
-  const c=JSON.parse(JSON.stringify(h)); S.cor=c.cor; S.lang=c.lang; S.ans=c.ans; S.env=c.env; S.red=c.red; S.tab=Object.keys(AREAS)[0];
-  salvar(); store.view="exam"; renderAll(); window.scrollTo({top:0,behavior:"auto"});
+  confirmar("Abrir este simulado no cartão?",`“${esc(h.nome)}” vai substituir o preenchimento atual do cartão. O histórico fica como está.`,"Abrir",()=>{
+    const c=JSON.parse(JSON.stringify(h)); S.cor=c.cor; S.lang=c.lang; S.ans=c.ans; S.env=c.env; S.red=c.red; S.tab=Object.keys(AREAS)[0];
+    salvar(); store.view="exam"; renderAll(); window.scrollTo({top:0,behavior:"auto"});
+  },false);
 }
 function apagarHist(id,volta){
-  const h=S.hist.find(x=>x.id===id); if(!h||!confirm(`Excluir "${h.nome}" do histórico?`)) return;
-  S.hist=S.hist.filter(x=>x.id!==id); salvar(); volta();
+  const h=S.hist.find(x=>x.id===id); if(!h) return;
+  confirmar("Excluir do histórico?",`“${esc(h.nome)}” será removido do histórico e dos gráficos. Não dá para desfazer.`,"Excluir",()=>{ S.hist=S.hist.filter(x=>x.id!==id); salvar(); volta(); },true);
 }
 
 /* dashboard: stats, gráfico de linhas, tabela (alternativa acessível) */
@@ -1233,7 +1246,7 @@ const TRANSP=`<p><b>Aviso:</b> é uma <b>estimativa</b> feita com dados público
   <p><b>Parâmetros recuperados:</b> em algumas provas e áreas, o arquivo oficial de itens do INEP tem parâmetros de itens fora do lugar ou incorretos, e a nota oficial não pode ser reproduzida com eles. Nesses casos, recuperamos os parâmetros efetivamente usados a partir das notas oficiais dos participantes (busca da combinação que reproduz as notas e ajuste fino) e só adotamos o resultado quando ele também reproduz a nota oficial em cadernos e participantes que não entraram no ajuste. Cada área desse tipo traz um aviso na página da prova.</p>
   <p><b>Provas antigas:</b> a TRI só existe no ENEM a partir de 2009, e só esses anos estão aqui. Entre 2009 e 2016 o dia 1 foi Ciências Humanas e da Natureza e o dia 2 foi Linguagens e Matemática; de 2017 em diante, o dia 1 é Linguagens e Humanas. A página mostra a ordem de cada ano. Alguns anos têm limites próprios descritos no cartão de cada prova.</p>
   <p><b>Limites:</b> vale para a aplicação regular (cadernos Azul, Amarelo, Branco, Rosa e Cinza, conforme o ano). Não vale para reaplicação, PPL nem provas adaptadas. Se escolher o caderno errado, a nota sai errada, sem aviso. O INEP não publica o assunto de cada questão, só a habilidade da Matriz de Referência; é isso que o raio-X mostra (anos sem habilidade nos dados não têm raio-X). A orientação de redação segue os níveis oficiais do INEP. "Ver" mostra o enunciado extraído da prova oficial, só texto (figuras, gráficos e fórmulas podem faltar); "Pesquisar" busca na internet pela frase da questão.</p>`;
-const ORD_COR=["AZUL","AMARELA","BRANCA","ROSA","CINZA"];
+const ORD_COR=["AZUL","AMARELA","BRANCA","ROSA","CINZA","VERDE"];
 function linksProva(m){
   const curto={LC:"Linguagens",CH:"Humanas",CN:"Natureza",MT:"Matemática"};
   const nomeDia=d=>Object.keys(m.areas).filter(a=>m.areas[a].dia===d).map(a=>curto[a]).join(" e ");
@@ -1344,7 +1357,8 @@ document.addEventListener("click",e=>{
     case "fechar": fecharModal(); break;
     case "editar": S.env[a]=false; salvar(); renderPane(); break;
     case "start": { const idx=caderno(a); let j=S.ans[a].findIndex((x,k)=>x===""&&DATA.items[a][idx[k]][0]!==null); if(j<0)j=0; focarQ(a,j); break; }
-    case "clr": if(confirm("Limpar todas as marcações de "+AREAS[a].nome+"?")){ S.ans[a]=Array(45).fill(""); S.env[a]=false; salvar(); renderPane(); } break;
+    case "clr": confirmar("Limpar "+AREAS[a].nome+"?","Apaga todas as marcações desta área.","Limpar",()=>{ S.ans[a]=Array(45).fill(""); S.env[a]=false; salvar(); renderPane(); },true); break;
+    case "confOk": { const f=CONF_OK; CONF_OK=null; fecharModal(); if(f) f(); break; }
     case "paste": colar(a); break;
     case "pasteDia": colarDia(t.dataset.m); break;
     case "enunq": abrirEnun(a,+t.dataset.j); break;
@@ -1451,8 +1465,7 @@ $("bkFile").onchange=e=>{
       if(!o||o.app!=="correcao-enem"||!(o.store||o.estados)) throw new Error("fmt");
       const src=o.store||{exam:Object.keys(o.estados)[0],view:"exam",estados:o.estados};
       const n=validarStore(src);
-      if(!confirm("Substituir o preenchimento e o histórico atuais pelos do backup?")){ e.target.value=""; return; }
-      store=n; setExam(store.exam); salvar(); renderAll(); toast("Backup carregado.");
+      confirmar("Carregar este backup?","Isso <b>substitui</b> o preenchimento e o histórico atuais pelos do arquivo. Se quiser guardar o que está aqui, cancele e use “Baixar backup” antes.","Substituir tudo",()=>{ store=n; setExam(store.exam); salvar(); renderAll(); toast("Backup carregado."); },true);
     }catch(_){ toast("⚠ Arquivo inválido. Use um backup gerado por esta página (backup-correcao-enem.json)."); }
     e.target.value="";
   };
