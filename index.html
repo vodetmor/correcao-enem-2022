@@ -696,12 +696,12 @@ function avisoOrdem(){
 function sheetInner(a,r,dif=true){
   const idx=r.idx, base=AREAS[a].base; let h="";
   idx.forEach((k,j)=>{
-    const it=DATA.items[a][k], fora=it[0]===null;
-    h+=`<div class="q${fora?" fora":""}" data-a="${a}" data-i="${j}" tabindex="${r.pronto?-1:0}" role="radiogroup" aria-label="Questão ${base+j}">${r.pronto?`<button type="button" class="n qn" data-act="enunq" data-a="${a}" data-j="${j}" title="Ver o enunciado da questão ${base+j}" aria-label="Ver o enunciado da questão ${base+j}">${base+j}</button>`:`<span class="n">${base+j}</span>`}<span class="bs">`;
+    const it=DATA.items[a][k], fora=it[0]===null, mostraFora=fora&&dif;
+    h+=`<div class="q${mostraFora?" fora":""}" data-a="${a}" data-i="${j}" tabindex="${r.pronto?-1:0}" role="radiogroup" aria-label="Questão ${base+j}">${r.pronto?`<button type="button" class="n qn" data-act="enunq" data-a="${a}" data-j="${j}" title="Ver o enunciado da questão ${base+j}" aria-label="Ver o enunciado da questão ${base+j}">${base+j}</button>`:`<span class="n">${base+j}</span>`}<span class="bs">`;
     LETRAS.forEach(l=>{ h+=`<button type="button" class="b" role="radio" aria-checked="false" data-v="${l}" aria-label="Questão ${base+j}, alternativa ${l}" tabindex="-1">${l}</button>`; });
     h+=`<button type="button" class="b br" role="radio" aria-checked="false" data-v="-" title="Em branco" aria-label="Questão ${base+j}, em branco" tabindex="-1">–</button></span>`;
     if(dif&&!fora){ const dd=dificuldade(a,it[1]); h+=`<span class="dif ${dd[1]}" title="Questão ${dd[0].toLowerCase()} nesta prova (pelo parâmetro b do INEP)">${dd[0]}</span>`; }
-    if(fora) h+=`<span class="tag" title="${it[5]===1?"Anulada pelo INEP (gabarito X)":"Excluída pelo INEP da calibração da nota"}: pode marcar para estudar, mas não entra na nota">${it[5]===1?"Anulada":"Não conta"}</span>`;
+    if(mostraFora) h+=`<span class="tag" title="${it[5]===1?"Anulada pelo INEP (gabarito X)":"Excluída pelo INEP da calibração da nota"}: pode marcar para estudar, mas não entra na nota">${it[5]===1?"Anulada":"Não conta"}</span>`;
     h+=`</div>`;
   });
   return h;
@@ -742,7 +742,8 @@ function renderAreaPane(a){
 function pintar(a,skipChrome){
   const sec=$("area-"+a); if(!sec||!caderno(a)) return;
   const r=analisarC(a);
-  const pr=$("prog-"+a); if(pr) pr.textContent=`Questões ${AREAS[a].base} a ${AREAS[a].base+44} · ${r.feitas}/${r.validas.length} marcadas`;
+  const emSim=!!store.sim&&store.sim.areas.includes(a)&&!r.pronto, nf=emSim?S.ans[a].filter(x=>x!=="").length:r.feitas, nt=emSim?45:r.validas.length;
+  const pr=$("prog-"+a); if(pr) pr.textContent=`Questões ${AREAS[a].base} a ${AREAS[a].base+44} · ${nf}/${nt} marcadas`;
   sec.querySelectorAll(".q").forEach(q=>{
     const j=+q.dataset.i, v=S.ans[a][j], it=r.itens[j];
     q.classList.remove("certa","errada");
@@ -943,8 +944,9 @@ function simPerguntarSair(){
     <p class="hint">Quer só terminar? Use <b>Encerrar e corrigir</b> no topo.</p>
     <div class="modal-act"><button class="btn pri" type="button" data-act="fechar">Continuar o simulado</button><button class="btn danger" type="button" data-act="simDescartar">Descartar e sair</button></div>`);
 }
+function simContagem(){ const sm=store.sim; let f=0; sm.areas.forEach(a=>{ f+=S.ans[a].filter(x=>x!=="").length; }); return {f,t:sm.areas.length*45}; }
 function simProg(){
-  const sm=store.sim; if(!sm) return; let f=0,t=0; sm.areas.forEach(a=>{ const r=analisarC(a); f+=r.feitas; t+=r.validas.length; });
+  const sm=store.sim; if(!sm) return; const {f,t}=simContagem();
   const e=$("sim-prog"); if(e) e.textContent=`${f}/${t} marcadas`;
 }
 const hm=ts=>new Date(ts).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
@@ -989,7 +991,7 @@ function simFinalizar(auto){
     <div class="modal-act"><button class="btn pri" type="button" data-act="fechar">Ver minha correção</button><button class="btn" type="button" data-act="tab" data-t="RES">Ver panorama por dificuldade</button></div>`);
 }
 function simPerguntarFim(){
-  const sm=store.sim; let f=0,t=0; sm.areas.forEach(a=>{ const r=analisarC(a); f+=r.feitas; t+=r.validas.length; });
+  const sm=store.sim, {f,t}=simContagem();
   const rest=Math.round((sm.fim-Date.now())/1000);
   abrirModal(`<h3>Encerrar e corrigir?</h3><p>Você marcou <b>${f} de ${t}</b> questões.${t-f?` As <b>${t-f}</b> sem marcação contam como em branco.`:""} ${rest>0?`Ainda restam <b>${fmtDur(rest)}</b>.`:""}</p><p class="hint">Depois de corrigir, o gabarito aparece e o cronômetro para.</p>
     <div class="modal-act"><button class="btn" type="button" data-act="fechar">Voltar à prova</button><button class="btn pri" type="button" data-act="simEndGo">Corrigir agora</button></div>`);
