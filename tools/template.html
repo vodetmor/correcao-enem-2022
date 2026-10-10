@@ -901,13 +901,19 @@ function resumoValidacao(){
   return `<b>Como saber se confio na nota:</b> comparei o cálculo com a nota oficial de todos os participantes de cada prova. Em <b>${ex} de ${t}</b> combinações de prova e área a nota bate (a menos de 1 ponto, na prática igual à oficial); ${rc?`<b>${rc}</b> delas só bateram depois de recuperarmos parâmetros de itens que estão errados no arquivo oficial. `:""}${es?`<b>${es}</b> são estimativas com margem de erro. `:""}${no?`<b>${no}</b> não têm TRI (só acertos). `:""}O selo de cada prova mostra o resultado.`;
 }
 function andamento(m,st){
-  if(!st||!st.res) return "";
-  const as=Object.keys(m.areas), feitas=as.filter(a=>st.res[a]); if(!feitas.length) return "";
+  if(!st) return "";
+  const as=Object.keys(m.areas), res=st.res||{}, feitas=as.filter(a=>res[a]);
+  const marc=a=>((st.ans&&st.ans[a])||[]).filter(x=>x!==""&&x!=="-").length;
+  const rascunho=as.filter(a=>!res[a]&&marc(a)>0);
+  if(!feitas.length&&!rascunho.length) return "";
   const curto={LC:"Linguagens",CH:"Humanas",CN:"Natureza",MT:"Matemática"};
-  const notas=feitas.map(a=>st.res[a].nota).filter(v=>v!==null); const rs=redSoma(st); const todas=[...notas,...(rs!==null?[rs]:[])];
+  const notas=feitas.map(a=>res[a].nota).filter(v=>v!==null); const rs=redSoma(st); const todas=[...notas,...(rs!==null?[rs]:[])];
   const media=todas.length?todas.reduce((x,y)=>x+y,0)/todas.length:null;
-  const chips=as.map(a=>{ const v=st.res[a]; return v?`<span class="chipn ok">${curto[a]} <b>${v.nota!==null?fmt(v.nota)+(v.band?" ±"+Math.round(v.band):""):v.ac+"/"+v.tot+" acertos"}</b></span>`:`<span class="chipn">${curto[a]} <b>a corrigir</b></span>`; }).join("")+(rs!==null?`<span class="chipn ok">Redação <b>${rs}</b></span>`:"");
-  return `<div class="andamento"><b>${feitas.length===as.length?"Correção completa":"Correção em andamento"}</b> · ${feitas.length} de ${as.length} áreas<div class="row" style="gap:6px;margin-top:6px">${chips}</div>${media!==null?`<div class="hint" style="margin-top:6px">Média simples do que já foi corrigido: <b>${fmt(media)}</b>${todas.length<as.length+1?" (parcial)":""}</div>`:""}</div>`;
+  const chips=as.map(a=>{ const v=res[a]; if(v) return `<span class="chipn ok">${curto[a]} <b>${v.nota!==null?fmt(v.nota)+(v.band?" ±"+(v.band<1?String(v.band.toFixed(1)).replace(".",","):Math.round(v.band)):""):v.ac+"/"+v.tot+" acertos"}</b></span>`;
+    const n=marc(a); return n?`<span class="chipn">${curto[a]} <b>${n}/45 marcadas</b></span>`:`<span class="chipn">${curto[a]} <b>a começar</b></span>`; }).join("")+(rs!==null?`<span class="chipn ok">Redação <b>${rs}</b></span>`:"");
+  const titulo=feitas.length===as.length?"Correção completa":feitas.length?"Correção em andamento":"Simulado em andamento";
+  const sub=feitas.length?`${feitas.length} de ${as.length} áreas corrigidas`+(rascunho.length?` · ${rascunho.length} com marcações salvas`:""):`${rascunho.length} de ${as.length} áreas com marcações salvas neste navegador`;
+  return `<div class="andamento"><b>${titulo}</b> · ${sub}<div class="row" style="gap:6px;margin-top:6px">${chips}</div>${media!==null?`<div class="hint" style="margin-top:6px">Média simples do que já foi corrigido: <b>${fmt(media)}</b>${todas.length<as.length+1?" (parcial)":""}</div>`:""}${rascunho.length?`<div class="hint" style="margin-top:6px">Toque em "Continuar o simulado" para retomar de onde parou.</div>`:""}</div>`;
 }
 function selo(m){
   const cs=Object.values(m.areas).map(a=>a.classe), tot=Object.keys(m.areas).length;
