@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Correção ENEM</title>
+<meta name="description" content="Cartão-resposta digital do ENEM: marque suas respostas e veja a nota TRI estimada, o gabarito e o raio-X por habilidade. Funciona offline.">
+<style>
+:root{
+  --bg:#F6F9FE;--card:#fff;--ink:#131820;--muted:#57626F;--line:#DDE3EB;--soft:#EEF2F8;
+  --green:#0A7A34;--greenbg:#E3F6E9;--blue:#0F5BFF;--bluebg:#E8EFFF;
+  --ok:#0A7A34;--okbg:#E3F6E9;--bad:#C0362C;--badbg:#FDECEA;--warn:#8A5A00;--warnbg:#FFF3DC;
+  --bubble:#9AA5B5;--sel:#131820;--hero1:#D3F3DE;--shadow:0 4px 16px rgba(19,24,32,.08),0 1px 2px rgba(19,24,32,.05);
+  --onbtn:#fff;--bar:rgba(246,249,254,.92);
+}
+:root[data-theme=dark]{
+  --bg:#0E1116;--card:#171B22;--ink:#EDF1F6;--muted:#9AA6B6;--line:#2A313C;--soft:#1F252E;
+  --green:#3DD17A;--greenbg:#12301F;--blue:#6C9BFF;--bluebg:#16233F;
+  --ok:#3DD17A;--okbg:#12301F;--bad:#FF8076;--badbg:#3A1A18;--warn:#F2C26B;--warnbg:#33290F;
+  --bubble:#5C6675;--sel:#EDF1F6;--hero1:#10281B;--shadow:0 4px 16px rgba(0,0,0,.4);--onbtn:#06210f;--bar:rgba(14,17,22,.92);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:76px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px 56px}
+h1{font-size:clamp(1.6rem,4.5vw,2.4rem);line-height:1.12;margin:6px 0 6px;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--green)}
+h2{font-size:1.15rem;margin:0}
+h3{font-size:1rem;margin:0 0 8px}
+p{margin:0 0 8px}
+.hint{color:var(--muted);font-size:.9rem}
+.hidden{display:none!important}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.88em;background:var(--soft);padding:1px 6px;border-radius:6px}
+
+/* barra fixa com as notas */
+.topbar{position:sticky;top:0;z-index:20;background:var(--bar);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1120px;margin:0 auto;padding:8px 16px;display:flex;align-items:center;gap:10px}
+.brand{font-weight:700;letter-spacing:-.01em;white-space:nowrap}.brand b{color:var(--green)}
+.scores{display:flex;gap:6px;flex:1;overflow-x:auto;scrollbar-width:none;padding:2px}
+.scores::-webkit-scrollbar{display:none}
+.sc{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:3px 10px;min-width:62px;cursor:pointer;font:inherit;text-align:center;line-height:1.15;flex:none}
+.sc span{display:block;font-size:.66rem;color:var(--muted);font-weight:600;letter-spacing:.04em}
+.sc b{font-size:.98rem;font-variant-numeric:tabular-nums;color:var(--muted)}
+.sc.ok b{color:var(--green)}
+.sc.med{border-color:var(--green)}
+.sc:hover{border-color:var(--green)}
+.bar-act{display:flex;gap:6px;flex:none}
+
+.hero{padding:18px 0 4px}
+.sub{color:var(--muted);max-width:680px;margin:0 0 4px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:9px 18px;font:inherit;font-weight:600;cursor:pointer;min-height:42px}
+.btn:hover:not(:disabled){border-color:var(--green)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.pri{background:var(--green);border-color:var(--green);color:var(--onbtn)}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:6px 14px;min-height:36px;font-size:.9rem}
+.btn.ic{width:42px;padding:0;display:grid;place-items:center}
+.btn:focus-visible,.chip:focus-visible,.b:focus-visible,.q:focus-visible,select:focus-visible,textarea:focus-visible,.seg button:focus-visible,summary:focus-visible,.sc:focus-visible{outline:3px solid #7fa6ff;outline-offset:2px}
+
+/* seleção */
+.sel{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+.sel>div{min-width:0}
+@media(max-width:620px){.dsub{display:none}}
+@media(min-width:900px){.sel{grid-template-columns:auto minmax(0,1fr) auto;align-items:start;column-gap:28px}}
+.lbl{font-weight:600;margin:0 0 6px;display:block;font-size:.88rem;color:var(--muted)}
+.seg{display:flex;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:4px;gap:4px}
+.seg button{flex:1;appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:600;border-radius:999px;padding:9px 14px;cursor:pointer;min-height:42px;white-space:nowrap}
+.seg button[aria-pressed=true]{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.chip{appearance:none;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 16px;font:inherit;font-weight:600;cursor:pointer;min-height:42px}
+.chip:hover{border-color:var(--green)}
+.chip[aria-pressed=true]{background:var(--green);border-color:var(--green);color:var(--onbtn)}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:-1px;border:1px solid rgba(0,0,0,.3)}
+.note{background:var(--warnbg);color:var(--warn);border-radius:12px;padding:9px 14px;font-size:.92rem}
+.note.info{background:var(--bluebg);color:var(--blue)}
+.note.good{background:var(--greenbg);color:var(--green)}
+.trava{border:2px dashed var(--line);border-radius:16px;padding:22px 14px;text-align:center;color:var(--muted);background:var(--soft)}
+
+/* acordeões */
+details.acc{border-top:1px solid var(--line)}
+details.acc>summary{list-style:none;cursor:pointer;padding:13px 20px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:8px}
+details.acc>summary::-webkit-details-marker{display:none}
+details.acc>summary::after{content:"+";font-size:1.3rem;line-height:1;color:var(--muted);font-weight:400}
+details.acc[open]>summary::after{content:"–"}
+details.acc>summary small{font-weight:400;color:var(--muted);margin-left:8px}
+.acc-b{padding:0 20px 18px}
+details.paste summary{cursor:pointer;font-weight:600;font-size:.92rem}
+
+/* área */
+.area{padding:0;overflow:hidden;scroll-margin-top:76px}
+.area-h{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:16px 20px}
+.area-h h2 small{display:block;font-size:.85rem;font-weight:400;color:var(--muted);margin-top:2px}
+.pbar{height:6px;background:var(--soft);border-radius:99px;overflow:hidden;width:100%;max-width:220px;margin-top:8px}
+.pbar i{display:block;height:100%;background:var(--green);transition:width .2s}
+.nota-pill{background:var(--greenbg);color:var(--green);border-radius:16px;padding:6px 18px;text-align:center;line-height:1.1}
+.nota-pill b{display:block;font-size:1.8rem;font-variant-numeric:tabular-nums}
+.nota-pill small{font-size:.72rem;font-weight:600;letter-spacing:.03em}
+.sum{padding:0 20px 14px}
+.stats{display:grid;gap:10px;grid-template-columns:repeat(4,1fr)}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{border:1px solid var(--line);border-radius:14px;padding:10px 14px;background:var(--card)}
+.stat b{display:block;font-size:1.5rem;line-height:1.15;font-variant-numeric:tabular-nums}
+.stat.main b{color:var(--green)}
+.stat span{color:var(--muted);font-size:.82rem}
+.sheet{display:grid;grid-auto-flow:row;grid-template-columns:minmax(0,1fr);gap:2px 28px;margin-top:10px}
+@media(min-width:640px){.sheet{grid-auto-flow:column;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(23,auto)}}
+@media(min-width:1000px){.b{width:34px;height:34px}.sheet{grid-template-columns:repeat(3,minmax(0,1fr));gap:2px 20px;grid-template-rows:repeat(15,auto)}}
+.q{display:flex;align-items:center;gap:6px;min-width:0;padding:3px 6px;border-radius:12px;border:2px solid transparent}
+.q:focus{outline:none}
+.q:focus-visible{border-color:#7fa6ff;background:var(--bluebg)}
+.q .n{width:34px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted);flex:none}
+.q .bs{display:flex;gap:6px;flex:1;flex-wrap:nowrap;min-width:0}
+.b{appearance:none;width:36px;height:36px;border-radius:50%;border:2px solid var(--bubble);background:var(--card);color:var(--muted);font:600 .78rem/1 inherit;cursor:pointer;padding:0;flex:none;display:grid;place-items:center}
+.b:hover{border-color:var(--ink);color:var(--ink)}
+.b[aria-checked=true]{background:var(--sel);border-color:var(--sel);color:var(--card)}
+.b.br{border-style:dashed}
+.b.br[aria-checked=true]{background:#64748b;border-color:#64748b;color:#fff}
+.q.fora{background:var(--soft)}
+.q.fora.certa{background:var(--okbg)}.q.fora.errada{background:var(--badbg)}
+.q .tag{font-size:.68rem;color:var(--warn);background:var(--warnbg);border-radius:8px;padding:2px 8px;margin-left:4px;white-space:nowrap}
+.q.certa{background:var(--okbg)}.q.errada{background:var(--badbg)}
+.q.certa .b[aria-checked=true]{background:var(--ok);border-color:var(--ok);color:#fff}
+.q.errada .b[aria-checked=true]{background:var(--bad);border-color:var(--bad);color:#fff}
+.q .b.gab{box-shadow:0 0 0 3px var(--ok);border-color:var(--ok)}
+.tools{margin-top:12px}
+textarea{width:100%;min-height:72px;font:1rem/1.4 ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;letter-spacing:.05em;background:var(--card);color:var(--ink)}
+select{font:inherit;padding:9px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);min-height:42px}
+
+/* raio-x e tabela */
+.xr{display:grid;gap:8px;margin-top:8px}
+@media(min-width:800px){.xr{grid-template-columns:1fr 1fr}}
+.xi{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--card)}
+.xi .tp{display:flex;justify-content:space-between;gap:8px;font-weight:600;flex-wrap:wrap}
+.xi p{margin:0;color:var(--muted);font-size:.88rem}
+.pb{height:8px;border-radius:99px;background:var(--soft);margin:8px 0;overflow:hidden}
+.pb i{display:block;height:100%;background:var(--ok)}
+.pb.low i{background:var(--bad)}.pb.mid i{background:#E39A00}
+.filter{margin:10px 0;display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:.92rem}
+.tblw{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:640px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{background:var(--soft);font-size:.8rem;color:var(--muted)}
+td.c{text-align:center}
+tr.r-ok td.res-c{color:var(--ok);font-weight:700}
+tr.r-er td.res-c{color:var(--bad);font-weight:700}
+tr.r-er{background:var(--badbg)}
+tr.fora td{color:var(--muted)}
+.par{display:none}.showpar .par{display:table-cell}
+.pos{color:var(--ok);font-weight:600}.neg{color:var(--bad);font-weight:600}
+.dif{font-size:.78rem;padding:2px 10px;border-radius:999px;background:var(--soft)}
+.dif.f{background:var(--greenbg);color:var(--green)}.dif.m{background:var(--warnbg);color:var(--warn)}.dif.d{background:var(--badbg);color:var(--bad)}
+.enun-r td{white-space:normal;background:var(--bg)}
+.enun{max-width:760px;padding:6px 4px}
+.enun p{margin:0 0 8px;font-size:.92rem}
+.enun ul{list-style:none;margin:8px 0;padding:0;display:grid;gap:4px}
+.enun li{padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-size:.92rem}
+.enun li.gab{border-color:var(--ok);background:var(--okbg)}
+.enun li.voce{border-color:var(--bad);background:var(--badbg)}
+
+/* redação e boletim */
+.red-row{border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:8px;background:var(--card)}
+.red-row .rt{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.red-row .rt b{font-size:.95rem}
+.red-row textarea{min-height:56px;margin:0;font:.92rem/1.4 inherit;letter-spacing:0}
+.strip{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;background:var(--card);border:1px dashed var(--line);border-radius:16px;padding:10px 14px;margin-bottom:16px}
+.cursos{margin-top:12px;border:1px solid var(--line);border-radius:16px;padding:14px 16px;background:var(--card)}
+.cursos a{font-weight:600}
+.bol{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:12px}
+.tile{border:1px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--card)}
+.tile span{display:block;color:var(--muted);font-size:.82rem}
+.tile b{font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1.2}
+.tile.ok b{color:var(--green)}
+.tile.dia{background:var(--soft)}
+.final{margin-top:12px;border-radius:20px;padding:18px 20px;background:var(--greenbg);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.final b{font-size:2.6rem;color:var(--green);font-variant-numeric:tabular-nums;line-height:1}
+.final span{color:var(--muted)}
+.foot{font-size:.9rem;color:var(--muted)}
+.foot b{color:var(--ink)}
+.foot ol{margin:6px 0 10px 20px;padding:0}
+.empty{text-align:center;color:var(--muted);padding:18px 8px}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:.92rem;z-index:30;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow);max-width:92vw}
+.toast button{background:transparent;border:0;color:inherit;font:inherit;font-weight:700;text-decoration:underline;cursor:pointer;padding:0}
+@media(max-width:480px){.topbar-in{padding:6px 10px;flex-wrap:wrap}.brand{flex:1}.scores{order:3;flex:1 0 100%;gap:4px}.sc{min-width:0;flex:1;padding:3px 2px}html{scroll-padding-top:104px}.area{scroll-margin-top:104px}.panel{padding:16px;border-radius:16px}.area-h{padding:14px}.sum{padding:0 14px 12px}.acc-b{padding:0 14px 14px}details.acc>summary{padding:12px 14px}.q .tag{font-size:.6rem;padding:2px 5px;margin-left:0}.q{gap:4px;padding:3px 4px}.q .bs{gap:4px}.b{width:33px;height:33px}.q .n{width:26px}.stat b{font-size:1.3rem}}
+@media(max-width:350px){.b{width:28px;height:28px;font-size:.7rem}.q .n{width:22px}.wrap{padding:0 10px 56px}}
+@media print{.topbar,.tools,.btn{display:none}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="brand">Correção <b>ENEM</b></div>
+    <div class="scores" id="scores" aria-label="Suas notas"></div>
+    <div class="bar-act">
+      <button class="btn pri sm" id="salvar" type="button">Salvar</button>
+      <button class="btn ic sm" id="tema" type="button" aria-label="Alternar tema claro e escuro" title="Alternar tema">◐</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="hero">
+    <h1 id="h1">Correção do <em>ENEM</em></h1>
+    <p class="sub">Marque o cartão-resposta e veja na hora a nota TRI estimada, o gabarito e onde melhorar. Roda no seu aparelho, sem internet e sem cadastro.</p>
+  </header>
+
+  <div class="strip" id="strip">
+    <span class="hint">Seu preenchimento fica salvo neste navegador. Perdeu tudo? Carregue o seu backup.</span>
+    <div class="row">
+      <button class="btn sm" id="bkDown" type="button">Baixar backup</button>
+      <button class="btn sm" id="bkUp" type="button">Carregar backup</button>
+      <input type="file" id="bkFile" accept="application/json,.json" class="hidden">
+    </div>
+  </div>
+
+  <section class="panel" aria-label="Seleção da prova" id="selecao">
+    <div id="examBox" class="hidden" style="margin-bottom:14px">
+      <span class="lbl">Prova</span>
+      <select id="examSel" aria-label="Prova"></select>
+    </div>
+    <div class="sel">
+      <div><span class="lbl">1 · Dia da prova</span><div class="seg" id="dias" role="group" aria-label="Dia da prova"></div></div>
+      <div><span class="lbl">2 · Cor do caderno <span class="hint">(obrigatório, está na capa)</span></span><div class="row" id="cores"></div></div>
+      <div id="langBox"><span class="lbl">3 · Idioma <span class="hint">(obrigatório)</span></span><div class="row" id="langs"></div></div>
+    </div>
+    <div id="selMsg" class="note" style="margin-top:14px"></div>
+  </section>
+
+  <div id="areas"></div>
+
+  <details class="panel acc" id="redPanel" style="padding:0">
+    <summary>Redação <small>opcional, não é TRI</small><span id="redBadge" class="hint" style="margin-left:auto;margin-right:8px"></span></summary>
+    <div class="acc-b">
+      <p class="hint">Lance as 5 competências (0 a 200, de 40 em 40) dadas por quem corrigiu o seu texto (professor, corretor ou o GPT). Em cada uma, anote o que precisa melhorar: fica salvo junto com o resto.</p>
+      <div id="redG"></div>
+      <div class="tile" style="margin-top:12px;max-width:260px"><span>Nota da redação (0 a 1000)</span><b id="redSum">–</b></div>
+    </div>
+  </details>
+
+  <section class="panel" id="boletim">
+    <h2>Seu resultado no simulado</h2>
+    <p class="hint">Atualiza sozinho conforme você preenche. A média simples usa as notas que já existem.</p>
+    <div class="bol" id="bol"></div>
+    <div class="final" id="final"></div>
+    <div id="cursos"></div>
+  </section>
+
+  <details class="panel acc tools" style="padding:0">
+    <summary>Apagar tudo e recomeçar</summary>
+    <div class="acc-b">
+      <p class="hint">Apaga cartões, caderno e redação deste navegador. Baixe o backup antes se quiser guardar.</p>
+      <button class="btn danger" id="clearAll" type="button">Limpar tudo</button>
+    </div>
+  </details>
+
+  <details class="panel acc foot" id="transp" style="padding:0">
+    <summary>Como a nota é calculada e validação</summary>
+    <div class="acc-b">
+      <p><b>Aviso:</b> é uma <b>estimativa</b> feita com dados públicos, não a nota oficial emitida pelo INEP.</p>
+      <ol>
+        <li>Cada questão tem três parâmetros públicos do INEP: <b>a</b> (discriminação), <b>b</b> (dificuldade) e <b>c</b> (acerto ao acaso). A chance de acertar é <code>P(θ) = c + (1 − c) / (1 + e^(−a·(θ − b)))</code>.</li>
+        <li>Com seus acertos e erros, calculamos a proficiência θ pelo método <b>EAP</b> (média a posteriori), com distribuição a priori normal padrão e 40 pontos de quadratura entre −4 e 4, como descreve o documento "Procedimentos de Análise" do INEP. Questões sem marcação contam como em branco. Questões anuladas ou sem calibração podem ser marcadas para estudo, mas ficam fora da nota.</li>
+        <li>θ vira nota por uma conversão linear própria de cada área: <code>nota = m + s · θ</code>. {{CONSTS}} O INEP não publica essas constantes; nós as obtivemos por regressão contra as notas oficiais.</li>
+        <li>A "coerência das respostas" que o INEP cita é um efeito do próprio modelo: acertar questões difíceis e errar fáceis reduz a nota naturalmente. Não há regra extra.</li>
+      </ol>
+      <p><b>Validação:</b> {{VAL}}</p>
+      <p><b>Limites:</b> vale para a aplicação regular, cadernos {{CADERNOS}}. Não vale para reaplicação, provas adaptadas (Laranja e Verde) nem outras aplicações. Se escolher o caderno errado, a nota sai errada, sem aviso. O INEP não publica o assunto de cada questão, só a habilidade da Matriz de Referência; é isso que o raio-X mostra. "Ver" mostra o enunciado extraído da prova oficial; "Pesquisar" busca na internet pela frase da questão.</p>
+    </div>
+  </details>
+</div>
+<div class="toast hidden" id="toast" role="status"></div>
+
+<script>
+"use strict";
+const EXAMS = {
+  enem2022:{
+    id:"enem2022", nome:"ENEM 2022 · Regular", sigla:"ENEM 2022",
+    areas:{
+      LC:{nome:"Linguagens e Códigos",base:1,dia:1,lang:true},
+      CH:{nome:"Ciências Humanas",base:46,dia:1},
+      CN:{nome:"Ciências da Natureza",base:91,dia:2},
+      MT:{nome:"Matemática",base:136,dia:2}
+    },
+    cores:{1:["AZUL","AMARELA","BRANCA","ROSA"],2:["AZUL","AMARELA","CINZA","ROSA"]},
+    langs:["Inglês","Espanhol"],
+    dados:__DATA__
+  }
+};
+const COR_HEX = {AZUL:"#2563eb",AMARELA:"#facc15",BRANCA:"#ffffff",ROSA:"#f472b6",CINZA:"#9ca3af"};
+const COR_NOME = {AZUL:"Azul",AMARELA:"Amarela",BRANCA:"Branca",ROSA:"Rosa",CINZA:"Cinza"};
+const LETRAS = ["A","B","C","D","E"];
+const KEY = "correcao_enem_v2", KEY_TEMA = "correcao_enem_tema";
+const GRID = Array.from({length:40},(_,i)=>-4+8*i/39);
+let EX, AREAS, CORES, DATA, S;
+let store = {v:2, exam:Object.keys(EXAMS)[0], estados:{}};
+
+/* ---------- estado ---------- */
+function novoEstado(ex){
+  const e = {dia:1,cor:{1:null,2:null},lang:null,ans:{},calc:{},red:[null,null,null,null,null],redTxt:["","","","",""]};
+  for(const a in ex.areas){ e.ans[a]=Array(45).fill(""); e.calc[a]=false; }
+  return e;
+}
+function validar(o,ex){
+  const e = novoEstado(ex); if(!o || typeof o!=="object") return e;
+  if(o.dia===1||o.dia===2) e.dia=o.dia;
+  for(const d of [1,2]){ const c=o.cor&&o.cor[d]; if(ex.cores[d].includes(c)) e.cor[d]=c; }
+  if(o.lang===0||o.lang===1) e.lang=o.lang;
+  for(const a in ex.areas){
+    const v=o.ans&&o.ans[a];
+    if(Array.isArray(v)&&v.length===45) e.ans[a]=v.map(x=>(LETRAS.includes(x)||x==="-")?x:"");
+    e.calc[a]=!!(o.calc&&o.calc[a]);
+  }
+  if(Array.isArray(o.red)&&o.red.length===5) e.red=o.red.map(x=>[0,40,80,120,160,200].includes(x)?x:null);
+  if(Array.isArray(o.redTxt)&&o.redTxt.length===5) e.redTxt=o.redTxt.map(x=>typeof x==="string"?x.slice(0,800):"");
+  return e;
+}
+function validarStore(o){
+  const st={v:2,exam:Object.keys(EXAMS)[0],estados:{}};
+  if(o&&typeof o==="object"){
+    if(EXAMS[o.exam]) st.exam=o.exam;
+    for(const id in EXAMS) st.estados[id]=validar(o.estados&&o.estados[id],EXAMS[id]);
+  } else for(const id in EXAMS) st.estados[id]=novoEstado(EXAMS[id]);
+  return st;
+}
+function setExam(id){
+  store.exam=id; EX=EXAMS[id]; AREAS=EX.areas; CORES=EX.cores; DATA=EX.dados;
+  if(!store.estados[id]) store.estados[id]=novoEstado(EX);
+  S=store.estados[id];
+}
+function salvar(){ try{ localStorage.setItem(KEY,JSON.stringify(store)); return true; }catch(_){ return false; } }
+function carregar(){
+  let o=null; try{ const r=localStorage.getItem(KEY); if(r) o=JSON.parse(r); }catch(_){}
+  store=validarStore(o); setExam(store.exam);
+}
+
+/* ---------- cálculo ---------- */
+function diaTemLang(d){ return Object.keys(AREAS).some(a=>AREAS[a].dia===d&&AREAS[a].lang); }
+function diaLiberado(d){ return !!S.cor[d] && (!diaTemLang(d) || S.lang!==null); }
+function caderno(a){
+  const d=AREAS[a].dia; if(!diaLiberado(d)) return null;
+  const c = DATA.cad[a][S.cor[d]];
+  return AREAS[a].lang ? c[S.lang] : c;
+}
+function eap(its, oks){
+  let max=-Infinity; const ll = GRID.map(g=>{
+    let s=0;
+    for(let i=0;i<its.length;i++){
+      const A=its[i][0],B=its[i][1],C=its[i][2];
+      let p=C+(1-C)/(1+Math.exp(-A*(g-B)));
+      p=Math.min(1-1e-9,Math.max(1e-9,p));
+      s+=Math.log(oks[i]?p:1-p);
+    }
+    const lp=s-0.5*g*g; if(lp>max)max=lp; return lp;
+  });
+  let sw=0,sg=0; for(let i=0;i<GRID.length;i++){ const w=Math.exp(ll[i]-max); sw+=w; sg+=w*GRID[i]; }
+  return sg/sw;
+}
+function nota(a,th){ const k=DATA.k[a]; return k[0]+k[1]*th; }
+function analisar(a){
+  const idx = caderno(a); if(!idx) return null;
+  const itens = idx.map(k=>DATA.items[a][k]), ans = S.ans[a];
+  const validas = []; itens.forEach((it,j)=>{ if(it[0]!==null) validas.push(j); });
+  const r = {itens,validas,ans,idx};
+  r.feitas = validas.filter(j=>ans[j]!=="").length;
+  r.completo = r.feitas===validas.length;
+  r.pronto = !!S.calc[a] || r.completo;
+  /* questões fora do cálculo: marcáveis para estudo; acerto é só informativo (null = sem marcação ou anulada, gabarito X) */
+  r.info = {};
+  itens.forEach((it,j)=>{ if(it[0]!==null) return; const g=it[4], v=ans[j]; r.info[j]=(v===""||v==="-"||!LETRAS.includes(g))?null:(v===g); });
+  if(!r.pronto) return r;
+  const par = validas.map(j=>itens[j]);
+  const oks = validas.map(j=>ans[j]===itens[j][4]);   /* sem marcação = em branco = não acertou */
+  r.acertos = oks.filter(Boolean).length;
+  r.brancos = validas.filter(j=>ans[j]===""||ans[j]==="-").length;
+  r.erros = validas.length-r.acertos-r.brancos;
+  r.semMarca = validas.length-r.feitas;
+  r.todosBrancos = r.brancos===validas.length;
+  r.theta = r.todosBrancos ? null : eap(par,oks);
+  r.nota = r.todosBrancos ? 0 : nota(a,r.theta);
+  r.delta = {};
+  if(!r.todosBrancos){
+    validas.forEach((j,n)=>{ const o2=oks.slice(); o2[n]=!o2[n]; r.delta[j]=nota(a,eap(par,o2))-r.nota; });
+  }
+  r.ok = {}; validas.forEach((j,n)=>r.ok[j]=oks[n]);
+  return r;
+}
+const fmt = (x,d=1)=>x.toFixed(d).replace(".",",");
+function dificuldade(a,b){ const t=DATA.tert[a]; return b<=t[0]?["Fácil","f"]:b<=t[1]?["Média","m"]:["Difícil","d"]; }
+const CACHE = {};
+function analisarC(a){
+  const k=a+"|"+(S.cor[AREAS[a].dia]||"")+"|"+S.lang+"|"+S.calc[a]+"|"+S.ans[a].join("");
+  if(!(k in CACHE)){ CACHE[k]=analisar(a); if(Object.keys(CACHE).length>80) delete CACHE[Object.keys(CACHE)[0]]; }
+  return CACHE[k];
+}
+function resumoGeral(){
+  const itens=[];
+  for(const a in AREAS){ const r=analisarC(a); if(r&&r.pronto) itens.push({k:a,nota:r.nota}); }
+  const rs=S.red.every(x=>x!==null)?S.red.reduce((s,x)=>s+x,0):null;
+  if(rs!==null) itens.push({k:"RED",nota:rs});
+  const total=Object.keys(AREAS).length+1;
+  return {itens,n:itens.length,total,media:itens.length?itens.reduce((s,x)=>s+x.nota,0)/itens.length:null,completo:itens.length===total,rs};
+}
+
+/* ---------- seleção ---------- */
+function areasDoDia(){ return Object.keys(AREAS).filter(a=>AREAS[a].dia===S.dia); }
+function renderSel(){
+  document.getElementById("h1").innerHTML=`Correção do <em>${EX.sigla}</em>`;
+  document.title="Correção "+EX.sigla;
+  const eb=document.getElementById("examBox"), es=document.getElementById("examSel");
+  const ids=Object.keys(EXAMS); eb.classList.toggle("hidden",ids.length<2);
+  es.innerHTML=ids.map(i=>`<option value="${i}" ${i===EX.id?"selected":""}>${EXAMS[i].nome}</option>`).join("");
+  es.onchange=()=>{ setExam(es.value); salvar(); renderAll(); };
+  const dias=document.getElementById("dias"); dias.innerHTML="";
+  [[1,"Dia 1"],[2,"Dia 2"]].forEach(([d,t])=>{
+    const b=document.createElement("button"); b.type="button"; b.innerHTML=t+`<span class="dsub">${d===1?" · Ling. e Humanas":" · Nat. e Matemática"}</span>`;
+    b.setAttribute("aria-pressed",S.dia===d); b.onclick=()=>{S.dia=d;salvar();renderAll();}; dias.appendChild(b);
+  });
+  const cores=document.getElementById("cores"); cores.innerHTML="";
+  CORES[S.dia].forEach(c=>{
+    const b=document.createElement("button"); b.className="chip"; b.type="button";
+    b.innerHTML=`<span class="dot" style="background:${COR_HEX[c]}"></span>${COR_NOME[c]}`;
+    b.setAttribute("aria-pressed",S.cor[S.dia]===c); b.onclick=()=>{S.cor[S.dia]=c;salvar();renderAll();}; cores.appendChild(b);
+  });
+  const tl=diaTemLang(S.dia);
+  document.getElementById("langBox").classList.toggle("hidden",!tl);
+  const langs=document.getElementById("langs"); langs.innerHTML="";
+  EX.langs.forEach((t,v)=>{
+    const b=document.createElement("button"); b.className="chip"; b.type="button"; b.textContent=t;
+    b.setAttribute("aria-pressed",S.lang===v); b.onclick=()=>{S.lang=v;salvar();renderAll();}; langs.appendChild(b);
+  });
+  const m=document.getElementById("selMsg");
+  const falta=[]; if(!S.cor[S.dia]) falta.push("a cor do caderno"); if(tl&&S.lang===null) falta.push("o idioma");
+  if(falta.length){ m.className="note"; m.textContent=`O cartão está travado: escolha ${falta.join(" e ")}.`; }
+  else { m.className="note info"; m.textContent=`Caderno ${COR_NOME[S.cor[S.dia]]}${tl?" · "+EX.langs[S.lang]:""}. Se não for o da capa da sua prova, troque aqui: a cor muda a ordem das questões e, com o caderno errado, a nota sai errada.`; }
+}
+
+/* ---------- áreas ---------- */
+function renderAreas(){
+  const box=document.getElementById("areas"); box.innerHTML="";
+  const ar=areasDoDia();
+  if(ar.every(a=>caderno(a))){
+    const dp=document.createElement("section"); dp.className="panel"; dp.id="diaPaste";
+    dp.innerHTML=`<details class="paste"><summary>Prova inteira: colar as 90 respostas do dia de uma vez</summary>
+      <p class="hint" style="margin-top:8px">Cole as 90 letras na ordem do caderno: primeiro ${AREAS[ar[0]].nome} (questões ${AREAS[ar[0]].base} a ${AREAS[ar[0]].base+44}), depois ${AREAS[ar[1]].nome} (${AREAS[ar[1]].base} a ${AREAS[ar[1]].base+44}). Use <b>-</b> ou <b>.</b> para em branco. As duas notas aparecem na hora.</p>
+      <textarea id="paste-dia" spellcheck="false" autocapitalize="characters" placeholder="90 letras, de A a E" aria-label="90 respostas do dia" style="min-height:96px"></textarea>
+      <div class="row"><button class="btn pri sm" type="button" data-act="pasteDia">Aplicar nas duas áreas</button><span class="hint" id="pmsg-dia" role="status"></span></div></details>`;
+    box.appendChild(dp);
+  }
+  ar.forEach(a=>{
+    const idx=caderno(a), base=AREAS[a].base;
+    const sec=document.createElement("section"); sec.className="panel area"; sec.id="area-"+a;
+    sec.innerHTML=`<div class="area-h"><div><h2>${AREAS[a].nome}<small id="prog-${a}">Questões ${base} a ${base+44}</small></h2><div class="pbar" aria-hidden="true"><i id="pb-${a}" style="width:0"></i></div></div>
+      <div id="act-${a}"></div></div>
+      <div class="sum" id="sum-${a}"></div>`;
+    if(!idx){
+      const faltaLang=AREAS[a].dia===1&&diaTemLang(1)&&S.lang===null&&S.cor[1];
+      sec.insertAdjacentHTML("beforeend",`<div class="acc-b"><div class="trava">🔒 ${!S.cor[AREAS[a].dia]?"Escolha a cor do caderno acima para liberar este cartão.":"Escolha o idioma (inglês ou espanhol) acima para liberar este cartão."}</div></div>`);
+      sec.querySelector(".pbar").classList.add("hidden");
+      box.appendChild(sec); return;
+    }
+    sec.insertAdjacentHTML("beforeend",`<details class="acc" open data-k="card"><summary>Cartão-resposta <small>clique nas bolinhas ou digite as letras</small></summary>
+      <div class="acc-b"><div class="row"><button class="btn sm" type="button" data-act="start" data-a="${a}">Digitar pelo teclado</button>
+      <button class="btn sm danger" type="button" data-act="clr" data-a="${a}">Limpar área</button></div><div id="body-${a}"></div></div></details>
+      <div id="det-${a}"></div>`);
+    box.appendChild(sec);
+    const body=sec.querySelector("#body-"+a);
+    const sheet=document.createElement("div"); sheet.className="sheet"; sheet.setAttribute("role","group"); sheet.setAttribute("aria-label","Cartão-resposta "+AREAS[a].nome);
+    idx.forEach((k,j)=>{
+      const it=DATA.items[a][k], fora=it[0]===null;
+      const q=document.createElement("div"); q.className="q"+(fora?" fora":""); q.dataset.a=a; q.dataset.i=j; q.tabIndex=0;
+      q.setAttribute("role","radiogroup"); q.setAttribute("aria-label","Questão "+(base+j));
+      let h=`<span class="n">${base+j}</span><span class="bs">`;
+      LETRAS.forEach(l=>{ h+=`<button type="button" class="b" role="radio" aria-checked="false" data-v="${l}" aria-label="Questão ${base+j}, alternativa ${l}" tabindex="-1">${l}</button>`; });
+      h+=`<button type="button" class="b br" role="radio" aria-checked="false" data-v="-" title="Em branco" aria-label="Questão ${base+j}, em branco" tabindex="-1">–</button></span>`;
+      if(fora) h+=`<span class="tag" title="${it[5]===1?"Anulada pelo INEP (gabarito X)":"Excluída pelo INEP da calibração da nota"}: pode marcar para estudar, mas não entra na nota">${it[5]===1?"Anulada":"Não conta"}</span>`;
+      q.innerHTML=h; sheet.appendChild(q);
+    });
+    body.appendChild(sheet);
+    const pv=document.createElement("details"); pv.className="paste tools";
+    pv.innerHTML=`<summary>Colar as 45 respostas desta área</summary>
+      <p class="hint" style="margin-top:8px">Cole as 45 letras na ordem do caderno (A a E). Use <b>-</b> ou <b>.</b> para em branco. Conte também as anuladas. Teclado: clique numa questão e digite <b>A</b> a <b>E</b> (marca e avança), <b>-</b> para em branco, <b>Backspace</b> volta e apaga. Você não precisa marcar todas: questão sem marcação conta como em branco.</p>
+      <textarea id="paste-${a}" spellcheck="false" autocapitalize="characters" placeholder="Ex.: ABCDEABCDE..." aria-label="Respostas coladas"></textarea>
+      <div class="row"><button class="btn pri sm" type="button" data-act="paste" data-a="${a}">Aplicar</button><span class="hint" id="pmsg-${a}" role="status"></span></div>`;
+    body.appendChild(pv);
+    pintar(a);
+  });
+  renderBar(); renderBoletim();
+}
+function pintar(a){
+  const sec=document.getElementById("area-"+a);
+  if(sec&&caderno(a)){
+    const r=analisarC(a);
+    document.getElementById("prog-"+a).textContent=`Questões ${AREAS[a].base} a ${AREAS[a].base+44} · ${r.feitas}/${r.validas.length} marcadas`;
+    document.getElementById("pb-"+a).style.width=Math.round(100*r.feitas/r.validas.length)+"%";
+    sec.querySelectorAll(".q").forEach(q=>{
+      const j=+q.dataset.i, v=S.ans[a][j], it=r.itens[j];
+      q.classList.remove("certa","errada");
+      q.querySelectorAll(".b").forEach(b=>{ b.setAttribute("aria-checked",String(b.dataset.v===v&&v!=="")); b.classList.remove("gab"); });
+      if(r.pronto&&it[0]!==null){
+        q.classList.add(r.ok[j]?"certa":"errada");
+        const g=q.querySelector(`.b[data-v="${it[4]}"]`); if(g) g.classList.add("gab");
+      } else if(r.pronto){
+        if(r.info[j]!==null&&r.info[j]!==undefined) q.classList.add(r.info[j]?"certa":"errada");
+        const g=LETRAS.includes(it[4])&&q.querySelector(`.b[data-v="${it[4]}"]`); if(g) g.classList.add("gab");
+      }
+    });
+    renderAct(a,r); renderSum(a,r); renderDet(a,r);
+  }
+  renderBar(); renderBoletim();
+}
+function renderAct(a,r){
+  const el=document.getElementById("act-"+a); if(!el) return;
+  if(r.pronto) el.innerHTML=`<div class="nota-pill"><b>${fmt(r.nota)}</b><small>NOTA TRI ESTIMADA</small></div>`;
+  else el.innerHTML=`<button class="btn pri" type="button" data-act="calc" data-a="${a}" ${r.feitas?"":"disabled"} title="${r.feitas?"":"Marque ao menos uma questão"}">Ver minha nota</button>`;
+}
+
+/* ---------- resultado ---------- */
+function esc(t){ return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function linkRes(a,pos,cor,k){
+  const e=DATA.enun&&DATA.enun[a]&&DATA.enun[a][k];
+  const q = e&&e.q ? `${EX.sigla} ${e.q} resolução` : `${EX.sigla} questão ${pos} caderno ${COR_NOME[cor]} dia ${AREAS[a].dia} resolução`;
+  return "https://www.google.com/search?q="+encodeURIComponent(q);
+}
+function enunHtml(a,j,r){
+  const k=r.idx[j], e=DATA.enun&&DATA.enun[a]&&DATA.enun[a][k];
+  if(!e||e.s.length<60) return `<div class="enun"><p class="hint">O texto desta questão não pôde ser extraído do PDF (provavelmente é uma figura, gráfico ou fórmula). Consulte o caderno ou use "Pesquisar".</p></div>`;
+  const v=S.ans[a][j], g=r.itens[j][4];
+  const alts=e.a.map((t,i)=>{ const L="ABCDE"[i]; if(!t) return ""; const c=L===g?"gab":(L===v?"voce":""); return `<li class="${c}"><b>${L}</b> ${esc(t)}${L===g?' <span class="hint">(gabarito)</span>':''}${L===v&&L!==g?' <span class="hint">(sua resposta)</span>':''}</li>`; }).join("");
+  return `<div class="enun">${e.s.split("\n").map(x=>`<p>${esc(x)}</p>`).join("")}<ul>${alts}</ul>
+    <p class="hint">Texto extraído do caderno oficial do INEP. Figuras, gráficos e fórmulas podem faltar ou sair desalinhados: confira no seu caderno.</p></div>`;
+}
+function renderSum(a,r){
+  const box=document.getElementById("sum-"+a); if(!box) return;
+  if(!r.pronto){
+    box.innerHTML=r.feitas?`<p class="hint" style="margin:0">Marque o que quiser, não precisa responder tudo. Quando terminar, clique em <b>Ver minha nota</b>: o que ficar sem marcação conta como em branco.</p>`:"";
+    return;
+  }
+  const nFora=r.itens.filter(i=>i[0]===null).length, pct=Math.round(100*r.acertos/r.validas.length);
+  let h=`<div class="stats">
+    <div class="stat main"><b>${fmt(r.nota)}</b><span>nota TRI estimada</span></div>
+    <div class="stat"><b>${r.acertos}<span style="font-size:.9rem"> / ${r.validas.length}</span></b><span>acertos · ${pct}%</span></div>
+    <div class="stat"><b>${r.erros}</b><span>erros</span></div>
+    <div class="stat"><b>${r.brancos}</b><span>em branco${r.semMarca?` (${r.semMarca} sem marcação)`:""}</span></div></div>`;
+  if(r.todosBrancos) h+=`<div class="note" style="margin-top:10px">Nenhuma questão respondida: o INEP atribui nota 0 a cartão totalmente em branco.</div>`;
+  if(nFora) h+=`<p class="hint" style="margin:10px 0 0">Fora da nota: ${r.itens.map((it,j)=>it[0]===null?`<b>${AREAS[a].base+j}</b> (${it[5]===1?"anulada, gabarito X":"excluída da calibração"})`:null).filter(Boolean).join(", ")}. Dá para marcar para estudar; não altera a nota.${(()=>{const v=Object.values(r.info).filter(x=>x!==null);return v.length?` Nelas você acertou ${v.filter(Boolean).length} de ${v.length} marcadas.`:"";})()}</p>`;
+  box.innerHTML=h;
+}
+function renderDet(a,r){
+  const box=document.getElementById("det-"+a); if(!box) return;
+  const abertos=[...box.querySelectorAll("details[open]")].map(d=>d.dataset.k);
+  if(!r.pronto){ box.innerHTML=""; return; }
+  const cor=S.cor[AREAS[a].dia], base=AREAS[a].base, hd=DATA.habs[a], kk=DATA.k[a];
+  /* raio-X */
+  const hab={};
+  r.validas.forEach(j=>{ const k=r.itens[j][3]; (hab[k]=hab[k]||{t:0,ok:0,q:[]}); hab[k].t++; if(r.ok[j])hab[k].ok++; else hab[k].q.push(base+j); });
+  const lista=Object.entries(hab).map(([k,v])=>({k:+k,...v,p:v.ok/v.t})).sort((x,y)=>x.p-y.p||y.t-x.t);
+  const item=x=>{ const cl=x.p<=.5?"low":x.p<.8?"mid":""; return `<div class="xi"><div class="tp"><span>H${x.k} · ${x.ok}/${x.t} (${Math.round(x.p*100)}%)</span><span class="hint">Competência ${hd.hc[x.k]}</span></div>
+    <div class="pb ${cl}"><i style="width:${Math.round(x.p*100)}%"></i></div><p>${hd.h[x.k]}</p>${x.q.length?`<p style="margin-top:4px">Errou: ${x.q.map(n=>"questão "+n).join(", ")}</p>`:""}</div>`; };
+  const top=lista.slice(0,5), resto=lista.slice(5), fracas=lista.filter(x=>x.p<1).length;
+  let h=`<details class="acc" data-k="rx"><summary>Raio-X: onde melhorar <small>${fracas?fracas+" habilidades com erro":"sem erros"}</small></summary><div class="acc-b">
+    <p class="hint">Habilidades da Matriz de Referência do ENEM, da mais fraca para a mais forte. O INEP não divulga o assunto exato de cada questão; a habilidade indica o que ela cobra. Mostro as 5 mais fracas.</p>
+    <div class="xr">${top.map(item).join("")}</div>
+    ${resto.length?`<details class="paste" data-k="rx2" style="margin-top:10px"><summary>Ver todas as habilidades (${resto.length} a mais)</summary><div class="xr">${resto.map(item).join("")}</div></details>`:""}
+  </div></details>`;
+  /* tabela */
+  h+=`<details class="acc" data-k="tb"><summary>Questão a questão <small>gabarito, dificuldade, pontos e enunciado</small></summary><div class="acc-b">
+    <div class="filter"><label><input type="checkbox" data-act="soerros" data-a="${a}"> só os erros</label>
+    <label><input type="checkbox" data-act="params" data-a="${a}"> mostrar parâmetros a, b, c</label></div>
+    <div class="tblw" id="tw-${a}"><table id="tb-${a}"><thead><tr><th>Questão</th><th>Você</th><th>Gabarito</th><th>Resultado</th><th>Dificuldade</th><th>Pontos em jogo</th><th>Habilidade</th><th class="par">a</th><th class="par">b</th><th class="par">c</th><th>Enunciado</th><th>Resolução</th></tr></thead><tbody>`;
+  r.itens.forEach((it,j)=>{
+    const pos=base+j, v=S.ans[a][j], lk=`<button type="button" class="btn sm" data-act="enun" data-a="${a}" data-j="${j}">Ver</button></td><td><a href="${linkRes(a,pos,cor,r.idx[j])}" target="_blank" rel="noopener">Pesquisar</a>`;
+    if(it[0]===null){
+      const anul=!LETRAS.includes(it[4]), inf=r.info[j];
+      const res=anul?"Anulada (gabarito X)":(inf===null?"Não conta na nota":(inf?`<span class="pos">Acertou</span> <span class="hint">· não conta na nota</span>`:`<span class="neg">Errou</span> <span class="hint">· não conta na nota</span>`));
+      h+=`<tr class="fora"><td class="c">${pos}</td><td>${v==="-"?"em branco":(v||"–")}</td><td>${anul?"X":it[4]}</td><td class="res-c" style="font-weight:400">${res}</td><td>–</td><td>–</td><td>H${it[3]}</td><td class="par">–</td><td class="par">–</td><td class="par">–</td><td>${lk}</td></tr>`;
+      return;
+    }
+    const ok=r.ok[j], dd=dificuldade(a,it[1]);
+    let pts="–";
+    if(r.delta[j]!==undefined){ const d=r.delta[j]; pts=ok?`<span class="neg">${fmt(d)} se errasse</span>`:`<span class="pos">+${fmt(d)} se acertasse</span>`; }
+    h+=`<tr class="${ok?"r-ok":"r-er"}" data-er="${ok?0:1}"><td class="c">${pos}</td><td>${v==="-"?"em branco":(v||"sem marcação")}</td><td>${it[4]}</td><td class="res-c">${ok?"Acertou":"Errou"}</td><td><span class="dif ${dd[1]}">${dd[0]}</span></td><td>${pts}</td><td>H${it[3]}</td><td class="par">${fmt(it[0],2)}</td><td class="par">${fmt(it[1],2)}</td><td class="par">${fmt(it[2],2)}</td><td>${lk}</td></tr>`;
+  });
+  h+=`</tbody></table></div><p class="hint" style="margin-top:8px">Dificuldade é relativa a esta prova (parâmetro b dividido em três faixas). "Pontos em jogo" é a variação da sua nota se a questão tivesse o resultado oposto, mantendo as demais.</p></div></details>`;
+  /* cálculo */
+  h+=`<details class="acc" data-k="cl"><summary>Como esta nota foi calculada</summary><div class="acc-b"><p class="hint" style="margin:0">${r.todosBrancos?"Cartão todo em branco: nota 0, como no INEP.":`Proficiência estimada (EAP): <code>θ = ${fmt(r.theta,4)}</code> com ${r.validas.length} questões.<br>Conversão desta área: <code>nota = ${fmt(kk[0],3)} + ${fmt(kk[1],3)} × θ = ${fmt(r.nota,2)}</code>.<br>Nos testes com as notas oficiais a diferença foi de no máximo 0,1 ponto, desde que o caderno escolhido seja o da sua prova.`}</p></div></details>`;
+  box.innerHTML=h;
+  abertos.forEach(k=>{ const d=box.querySelector(`details[data-k="${k}"]`); if(d) d.open=true; });
+}
+
+/* ---------- barra, boletim, redação ---------- */
+function renderBar(){
+  const el=document.getElementById("scores"); if(!el) return;
+  let h="";
+  for(const a in AREAS){ const r=analisarC(a), ok=r&&r.pronto; h+=`<button type="button" class="sc ${ok?"ok":""}" data-act="goto" data-a="${a}" title="${AREAS[a].nome}"><span>${a}</span><b>${ok?fmt(r.nota):"–"}</b></button>`; }
+  const g=resumoGeral();
+  h+=`<button type="button" class="sc ${g.rs!==null?"ok":""}" data-act="goto" data-a="RED" title="Redação"><span>RED</span><b>${g.rs!==null?g.rs:"–"}</b></button>`;
+  h+=`<button type="button" class="sc med ${g.media!==null?"ok":""}" data-act="goto" data-a="MED" title="Média simples${g.completo?"":" (parcial)"}"><span>MÉDIA${g.media!==null&&!g.completo?"*":""}</span><b>${g.media!==null?fmt(g.media):"–"}</b></button>`;
+  el.innerHTML=h;
+}
+function renderBoletim(){
+  const bol=document.getElementById("bol"), fin=document.getElementById("final"); if(!bol) return;
+  const R={}; for(const a in AREAS) R[a]=analisarC(a);
+  const tile=(a)=>{ const r=R[a], ok=r&&r.pronto; return `<div class="tile ${ok?"ok":""}"><span>${AREAS[a].nome}</span><b>${ok?fmt(r.nota):"–"}</b>${ok?`<span>${r.acertos}/${r.validas.length} acertos · ${Math.round(100*r.acertos/r.validas.length)}%</span>`:`<span>${r&&r.feitas?r.feitas+" marcadas, falta calcular":"sem preenchimento"}</span>`}</div>`; };
+  let h="";
+  [1,2].forEach(d=>{
+    const as=Object.keys(AREAS).filter(a=>AREAS[a].dia===d);
+    as.forEach(a=>h+=tile(a));
+    const ok=as.every(a=>R[a]&&R[a].pronto);
+    h+=`<div class="tile dia ${ok?"ok":""}"><span>Média do dia ${d}</span><b>${ok?fmt(as.reduce((s,a)=>s+R[a].nota,0)/as.length):"–"}</b><span>${ok?"média simples das duas áreas":"precisa das duas áreas"}</span></div>`;
+  });
+  const g=resumoGeral();
+  h+=`<div class="tile ${g.rs!==null?"ok":""}"><span>Redação</span><b>${g.rs!==null?g.rs:"–"}</b><span>${g.rs!==null?"soma das 5 competências":"opcional"}</span></div>`;
+  bol.innerHTML=h;
+  fin.innerHTML=g.media===null?`<span>Preencha ao menos uma área e clique em "Ver minha nota" para ver a média.</span>`:
+    `<div><span>${g.completo?"Média simples das 5 notas":`Média simples parcial (${g.n} de ${g.total} notas)`}</span><br><b>${fmt(g.media)}</b></div><span>${g.completo?"4 áreas + redação":"Falta: "+[...Object.keys(AREAS).filter(a=>!(R[a]&&R[a].pronto)),...(g.rs===null?["Redação"]:[])].map(x=>AREAS[x]?AREAS[x].nome:x).join(", ")}</span>`;
+  const cu=document.getElementById("cursos");
+  if(g.media===null) cu.innerHTML="";
+  else {
+    const m=Math.round(g.media);
+    const q1="https://www.google.com/search?q="+encodeURIComponent(`cursos que consigo entrar com nota ${m} no ENEM nota de corte Sisu`);
+    const q2="https://www.google.com/search?q="+encodeURIComponent(`nota de corte Sisu por curso média ${m}`);
+    cu.innerHTML=`<div class="cursos"><b>Quais cursos consigo com essa nota?</b>
+      <p class="hint" style="margin:6px 0 8px">Não embuto notas de corte: elas mudam por curso, universidade, ano e cota, e o Sisu usa pesos diferentes por curso. Sua média simples (${fmt(g.media)}) serve de referência. Pesquise:</p>
+      <div class="row"><a class="btn sm" href="${q1}" target="_blank" rel="noopener">Cursos para ${m} pontos</a><a class="btn sm" href="${q2}" target="_blank" rel="noopener">Notas de corte do Sisu</a><a class="btn sm" href="https://sisu.mec.gov.br/" target="_blank" rel="noopener">Portal oficial do Sisu</a></div></div>`;
+  }
+  const rb=document.getElementById("redBadge"); if(rb) rb.textContent=g.rs!==null?`${g.rs} / 1000`:"";
+  document.getElementById("redSum").textContent=g.rs!==null?String(g.rs):"–";
+}
+const RED_T=["Domínio da norma culta","Compreensão da proposta e uso de conceitos","Seleção e organização dos argumentos","Coesão e mecanismos linguísticos","Proposta de intervenção"];
+function renderRed(){
+  const g=document.getElementById("redG"); g.innerHTML="";
+  for(let i=0;i<5;i++){
+    const w=document.createElement("div"); w.className="red-row";
+    w.innerHTML=`<div class="rt"><b>Competência ${i+1} · ${RED_T[i]}</b><select id="rc${i}" aria-label="Nota da competência ${i+1}"><option value="">sem nota</option>${[0,40,80,120,160,200].map(v=>`<option value="${v}" ${S.red[i]===v?"selected":""}>${v}</option>`).join("")}</select></div>
+      <textarea id="rt${i}" maxlength="800" placeholder="O que precisa melhorar nesta competência (opcional)" aria-label="O que melhorar na competência ${i+1}">${esc(S.redTxt[i]||"")}</textarea>`;
+    w.querySelector("select").onchange=e=>{ S.red[i]=e.target.value===""?null:+e.target.value; salvar(); renderBar(); renderBoletim(); };
+    w.querySelector("textarea").oninput=e=>{ S.redTxt[i]=e.target.value; salvar(); };
+    g.appendChild(w);
+  }
+}
+
+/* ---------- interação ---------- */
+function marcar(a,j,v){ S.ans[a][j]=v; salvar(); pintar(a); }
+function proxima(a,j,dir){ const k=j+dir; return k>=0&&k<45?k:null; }
+function focarQ(a,j){ const q=document.querySelector(`#area-${a} .q[data-i="${j}"]`); if(q){ q.focus({preventScroll:true}); q.scrollIntoView({block:"nearest"}); } }
+function avancar(a,j){
+  const n=proxima(a,j,1); if(n!==null){ focarQ(a,n); return; }
+  const ar=areasDoDia(), i=ar.indexOf(a);
+  if(i>=0&&i<ar.length-1&&caderno(ar[i+1])) focarQ(ar[i+1],0);
+}
+function irPara(a){
+  if(a==="RED"){ const d=document.getElementById("redPanel"); d.open=true; d.scrollIntoView({block:"start"}); return; }
+  if(a==="MED"){ document.getElementById("boletim").scrollIntoView({block:"start"}); return; }
+  if(AREAS[a].dia!==S.dia){ S.dia=AREAS[a].dia; salvar(); renderAll(); }
+  const el=document.getElementById("area-"+a); if(el) el.scrollIntoView({block:"start"});
+}
+function toast(msg,acao){
+  const t=document.getElementById("toast"); t.innerHTML=`<span>${msg}</span>${acao?`<button type="button" id="toastAct">${acao}</button>`:""}`; t.classList.remove("hidden");
+  const b=document.getElementById("toastAct"); if(b) b.onclick=()=>{ baixarBackup(); t.classList.add("hidden"); };
+  clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.add("hidden"),5000);
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest(".b");
+  if(b){ const q=b.closest(".q"), a=q.dataset.a, j=+q.dataset.i, v=b.dataset.v; marcar(a,j,S.ans[a][j]===v?"":v); focarQ(a,j); return; }
+  const t=e.target.closest("[data-act]"); if(!t) return;
+  const a=t.dataset.a, act=t.dataset.act;
+  if(act==="goto"){ irPara(a); return; }
+  if(act==="calc"){ S.calc[a]=true; salvar(); pintar(a); const s=document.getElementById("sum-"+a); if(s) s.scrollIntoView({block:"center"}); return; }
+  if(act==="start"){ const idx=caderno(a); let j=S.ans[a].findIndex((x,k)=>x===""&&DATA.items[a][idx[k]][0]!==null); if(j<0)j=0; focarQ(a,j); }
+  if(act==="clr"){ if(confirm("Limpar todas as marcações de "+AREAS[a].nome+"?")){ S.ans[a]=Array(45).fill(""); S.calc[a]=false; salvar(); pintar(a); } }
+  if(act==="paste"){ colar(a); }
+  if(act==="pasteDia"){ colarDia(); }
+  if(act==="enun"){
+    const tr=t.closest("tr"), nx=tr.nextElementSibling;
+    if(nx&&nx.classList.contains("enun-r")){ nx.remove(); t.textContent="Ver"; }
+    else { const r=analisarC(a), n=document.createElement("tr"); n.className="enun-r"; n.innerHTML=`<td colspan="12">${enunHtml(a,+t.dataset.j,r)}</td>`; tr.after(n); t.textContent="Ocultar"; }
+  }
+});
+document.addEventListener("change",e=>{
+  const t=e.target; if(!t.dataset||!t.dataset.act) return;
+  if(t.dataset.act==="soerros"){ document.querySelectorAll(`#tb-${t.dataset.a} tbody tr`).forEach(tr=>tr.classList.toggle("hidden",t.checked&&tr.dataset.er!=="1"&&!tr.classList.contains("enun-r"))); }
+  if(t.dataset.act==="params"){ document.getElementById("tw-"+t.dataset.a).classList.toggle("showpar",t.checked); }
+});
+document.addEventListener("keydown",e=>{
+  const q=e.target.closest&&e.target.closest(".q"); if(!q) return;
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  const a=q.dataset.a, j=+q.dataset.i, k=e.key, L=k.length===1?k.toUpperCase():"";
+  if(LETRAS.includes(L)){ e.preventDefault(); marcar(a,j,L); avancar(a,j); return; }
+  if(k==="-"||k==="."||k===" "||k==="0"){ e.preventDefault(); marcar(a,j,"-"); avancar(a,j); return; }
+  if(k==="Backspace"||k==="Delete"){ e.preventDefault(); marcar(a,j,""); if(k==="Backspace"){ const n=proxima(a,j,-1); if(n!==null)focarQ(a,n);} return; }
+  if(k==="ArrowDown"||k==="ArrowRight"){ e.preventDefault(); const n=proxima(a,j,1); if(n!==null)focarQ(a,n); }
+  if(k==="ArrowUp"||k==="ArrowLeft"){ e.preventDefault(); const n=proxima(a,j,-1); if(n!==null)focarQ(a,n); }
+});
+function lerColado(id,msg,n,txt){
+  const t=document.getElementById(id).value.toUpperCase().replace(/[\s,;|]/g,"");
+  const bad=[...t].filter(c=>!"ABCDE.-*".includes(c));
+  if(bad.length){ msg.textContent=`Caractere inválido: "${bad[0]}". Use só A, B, C, D, E, "-" ou ".".`; msg.style.color="var(--bad)"; return null; }
+  if(t.length!==n){ msg.textContent=`Foram lidas ${t.length} respostas; são necessárias exatamente ${n} (${txt}).`; msg.style.color="var(--bad)"; return null; }
+  return t;
+}
+function colarDia(){
+  const msg=document.getElementById("pmsg-dia"), ar=areasDoDia();
+  const t=lerColado("paste-dia",msg,90,"45 de cada área, contando as anuladas"); if(t===null) return;
+  ar.forEach((a,n)=>{ [...t.slice(n*45,n*45+45)].forEach((c,j)=>{ S.ans[a][j]=LETRAS.includes(c)?c:"-"; }); S.calc[a]=true; });
+  salvar(); ar.forEach(pintar); msg.textContent="Respostas aplicadas nas duas áreas."; msg.style.color="var(--ok)";
+}
+function colar(a){
+  const msg=document.getElementById("pmsg-"+a);
+  const t=lerColado("paste-"+a,msg,45,"uma por questão, contando as anuladas"); if(t===null) return;
+  [...t].forEach((c,j)=>{ S.ans[a][j]=LETRAS.includes(c)?c:"-"; });
+  S.calc[a]=true; salvar(); pintar(a); msg.textContent="Respostas aplicadas."; msg.style.color="var(--ok)";
+}
+
+/* ---------- salvar e backup ---------- */
+function bk(msg,err){ toast((err?"⚠ ":"")+msg); }
+function baixarBackup(){
+  const blob=new Blob([JSON.stringify({app:"correcao-enem",versao:2,salvoEm:new Date().toISOString(),store},null,1)],{type:"application/json"});
+  const u=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=u; a.download="backup-correcao-enem.json"; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),2000); bk("Backup baixado. Guarde o arquivo em local seguro.");
+}
+document.getElementById("salvar").onclick=()=>{
+  const ok=salvar(), h=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  toast(ok?`Salvo neste navegador às ${h}.`:"Não consegui salvar neste navegador (modo privado?). Baixe o backup.","Baixar backup");
+};
+document.getElementById("bkDown").onclick=baixarBackup;
+document.getElementById("bkUp").onclick=()=>document.getElementById("bkFile").click();
+document.getElementById("bkFile").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const o=JSON.parse(rd.result);
+      if(!o||o.app!=="correcao-enem"||!o.store) throw new Error("fmt");
+      const n=validarStore(o.store);
+      if(!confirm("Substituir o preenchimento atual pelo do backup?")) { e.target.value=""; return; }
+      store=n; setExam(store.exam); salvar(); renderAll(); bk("Backup carregado.");
+    }catch(_){ bk("Arquivo inválido. Use um backup gerado por esta página (backup-correcao-enem.json).",true); }
+    e.target.value="";
+  };
+  rd.readAsText(f);
+};
+document.getElementById("clearAll").onclick=()=>{
+  if(confirm("Apagar TODO o preenchimento deste navegador (cartões, caderno e redação)? Baixe o backup antes se quiser guardar.")){
+    store=validarStore(null); setExam(store.exam); try{localStorage.removeItem(KEY);}catch(_){} renderAll(); bk("Tudo limpo.");
+  }
+};
+
+/* ---------- tema ---------- */
+function aplicaTema(t){ document.documentElement.setAttribute("data-theme",t); }
+(function(){
+  let t=null; try{ t=localStorage.getItem(KEY_TEMA); }catch(_){}
+  if(!t) t=(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";
+  aplicaTema(t);
+  document.getElementById("tema").onclick=()=>{ t=t==="dark"?"light":"dark"; aplicaTema(t); try{localStorage.setItem(KEY_TEMA,t);}catch(_){} };
+})();
+
+function renderAll(){ renderSel(); renderAreas(); renderRed(); renderBar(); renderBoletim(); }
+carregar(); renderAll();
+</script>
+</body>
+</html>
