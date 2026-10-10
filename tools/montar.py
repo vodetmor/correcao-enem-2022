@@ -10,6 +10,8 @@ aqui = pathlib.Path(__file__).parent
 t = (aqui / "template.html").read_text(encoding="utf-8")
 d = json.loads((aqui / "dados_enem2022.json").read_text(encoding="utf-8"))
 
+d["red"] = json.loads((aqui / "red_niveis.json").read_text(encoding="utf-8"))  # critérios oficiais da redação
+
 f = lambda x, n=3: f"{x:.{n}f}".replace(".", ",")
 k = d["k"]
 consts = "Valores obtidos: " + "; ".join(

@@ -1,0 +1,66 @@
+{
+  "fonte": "INEP, Cartilha do Participante: Redação do ENEM 2020 (níveis de desempenho por competência). A estrutura de 5 competências e 6 níveis vale para as edições recentes do ENEM.",
+  "nivel": {"200": "Nível excelente", "160": "Nível bom", "120": "Nível mediano", "80": "Nível insuficiente", "40": "Nível precário", "0": "Nível mínimo"},
+  "comp": [
+    {
+      "t": "Domínio da norma culta",
+      "dica": "Revise concordância, regência, pontuação, ortografia e registro formal, e evite repetir o mesmo desvio ao longo do texto (reincidência pesa).",
+      "n": {
+        "200": "Demonstra excelente domínio da modalidade escrita formal da língua portuguesa e de escolha de registro. Desvios gramaticais ou de convenções da escrita serão aceitos somente como excepcionalidade e quando não caracterizarem reincidência.",
+        "160": "Demonstra bom domínio da modalidade escrita formal da língua portuguesa e de escolha de registro, com poucos desvios gramaticais e de convenções da escrita.",
+        "120": "Demonstra domínio mediano da modalidade escrita formal da língua portuguesa e de escolha de registro, com alguns desvios gramaticais e de convenções da escrita.",
+        "80": "Demonstra domínio insuficiente da modalidade escrita formal da língua portuguesa, com muitos desvios gramaticais, de escolha de registro e de convenções da escrita.",
+        "40": "Demonstra domínio precário da modalidade escrita formal da língua portuguesa, de forma sistemática, com diversificados e frequentes desvios gramaticais, de escolha de registro e de convenções da escrita.",
+        "0": "Demonstra desconhecimento da modalidade escrita formal da língua portuguesa."
+      }
+    },
+    {
+      "t": "Compreensão da proposta e repertório",
+      "dica": "Traga repertório sociocultural produtivo (fatos, dados e referências ligados ao tema), não copie trechos dos textos motivadores e feche o texto com proposição, argumentação e conclusão.",
+      "n": {
+        "200": "Desenvolve o tema por meio de argumentação consistente, a partir de um repertório sociocultural produtivo, e apresenta excelente domínio do texto dissertativo-argumentativo.",
+        "160": "Desenvolve o tema por meio de argumentação consistente e apresenta bom domínio do texto dissertativo-argumentativo, com proposição, argumentação e conclusão.",
+        "120": "Desenvolve o tema por meio de argumentação previsível e apresenta domínio mediano do texto dissertativo-argumentativo, com proposição, argumentação e conclusão.",
+        "80": "Desenvolve o tema recorrendo à cópia de trechos dos textos motivadores ou apresenta domínio insuficiente do texto dissertativo-argumentativo, não atendendo à estrutura com proposição, argumentação e conclusão.",
+        "40": "Apresenta o assunto, tangenciando o tema, ou demonstra domínio precário do texto dissertativo-argumentativo, com traços constantes de outros tipos textuais.",
+        "0": "Fuga ao tema ou não atendimento à estrutura dissertativo-argumentativa. Nesses casos a redação recebe nota zero e é anulada."
+      }
+    },
+    {
+      "t": "Argumentação e projeto de texto",
+      "dica": "Defenda um ponto de vista claro desde a introdução, organize os argumentos em um projeto de texto e vá além dos textos motivadores, mostrando autoria.",
+      "n": {
+        "200": "Apresenta informações, fatos e opiniões relacionados ao tema proposto, de forma consistente e organizada, configurando autoria, em defesa de um ponto de vista.",
+        "160": "Apresenta informações, fatos e opiniões relacionados ao tema, de forma organizada, com indícios de autoria, em defesa de um ponto de vista.",
+        "120": "Apresenta informações, fatos e opiniões relacionados ao tema, limitados aos argumentos dos textos motivadores e pouco organizados, em defesa de um ponto de vista.",
+        "80": "Apresenta informações, fatos e opiniões relacionados ao tema, mas desorganizados ou contraditórios e limitados aos argumentos dos textos motivadores, em defesa de um ponto de vista.",
+        "40": "Apresenta informações, fatos e opiniões pouco relacionados ao tema ou incoerentes e sem defesa de um ponto de vista.",
+        "0": "Apresenta informações, fatos e opiniões não relacionados ao tema e sem defesa de um ponto de vista."
+      }
+    },
+    {
+      "t": "Coesão e mecanismos linguísticos",
+      "dica": "Use conectivos e operadores argumentativos entre parágrafos e dentro deles, e varie as retomadas (pronomes, sinônimos, expressões resumitivas), conferindo se cada conectivo expressa a relação de sentido pretendida.",
+      "n": {
+        "200": "Articula bem as partes do texto e apresenta repertório diversificado de recursos coesivos.",
+        "160": "Articula as partes do texto, com poucas inadequações, e apresenta repertório diversificado de recursos coesivos.",
+        "120": "Articula as partes do texto, de forma mediana, com inadequações, e apresenta repertório pouco diversificado de recursos coesivos.",
+        "80": "Articula as partes do texto, de forma insuficiente, com muitas inadequações, e apresenta repertório limitado de recursos coesivos.",
+        "40": "Articula as partes do texto de forma precária.",
+        "0": "Não articula as informações."
+      }
+    },
+    {
+      "t": "Proposta de intervenção",
+      "dica": "Escreva uma proposta explícita, ligada ao tema e à discussão do texto, respondendo às 5 perguntas do manual: o que fazer (ação), quem executa (agente), como viabilizar (meio), qual efeito (finalidade) e um detalhamento extra. Sem desrespeitar os direitos humanos.",
+      "n": {
+        "200": "Elabora muito bem proposta de intervenção, detalhada, relacionada ao tema e articulada à discussão desenvolvida no texto.",
+        "160": "Elabora bem proposta de intervenção relacionada ao tema e articulada à discussão desenvolvida no texto.",
+        "120": "Elabora, de forma mediana, proposta de intervenção relacionada ao tema e articulada à discussão desenvolvida no texto.",
+        "80": "Elabora, de forma insuficiente, proposta de intervenção relacionada ao tema, ou não articulada com a discussão desenvolvida no texto.",
+        "40": "Apresenta proposta de intervenção vaga, precária ou relacionada apenas ao assunto.",
+        "0": "Não apresenta proposta de intervenção ou apresenta proposta não relacionada ao tema ou ao assunto."
+      }
+    }
+  ]
+}
