@@ -1307,12 +1307,20 @@ function selo(m){
   const p=[]; if(ex) p.push(ex+" exata"+(ex>1?"s":"")); if(es) p.push(es+" estimada"+(es>1?"s":"")); if(no) p.push(no+" sem TRI");
   return `<span class="selo ${no?"no":"es"}">TRI: ${p.join(" · ")}</span>`;
 }
+/* dashboard no topo do hub: recolhível, lembra se a pessoa deixou aberto ou fechado */
+const KEY_UI="correcao_enem_ui";
+function uiGet(k){ try{ const o=JSON.parse(localStorage.getItem(KEY_UI)); return o?o[k]:undefined; }catch(_){ return undefined; } }
+function uiSet(k,v){ try{ const o=JSON.parse(localStorage.getItem(KEY_UI))||{}; o[k]=v; localStorage.setItem(KEY_UI,JSON.stringify(o)); }catch(_){} }
+function dashLobby(){
+  const hist=histDe(DASH_ESC), tem=hist.length>0, pref=uiGet("dash"), aberto=pref===undefined?tem:!!pref;
+  const sub=tem?`${hist.length} simulado${hist.length>1?"s":""} salvo${hist.length>1?"s":""}`:"nenhum simulado salvo ainda";
+  return `<details class="panel acc dashd" id="dashSec" ${aberto?"open":""} style="padding:0;margin-bottom:14px"><summary><span><b>📈 Seu desempenho</b> <small>${sub}</small></span></summary><div class="acc-b">${dashHtml(DASH_ESC,true)}</div></details>`;
+}
 function renderLobby(){
   const ret=retomarHtml(); const main=$("main"); let h=`<header class="hero"><h1>Correção <em>ENEM</em></h1>
     <p class="sub">Escolha a prova, faça o simulado e corrija aqui: nota TRI estimada, gabarito, enunciado e onde melhorar. Do ENEM 2025 ao 2009, só as provas que têm TRI.</p></header>
     ${ret.html}
-    <div class="strip"><span class="hint">Seu preenchimento fica salvo neste navegador. Perdeu tudo? Carregue o seu backup.</span><div class="row"><button class="btn sm" data-act="bkDown" type="button">Baixar backup</button><button class="btn sm" data-act="bkUp" type="button">Carregar backup</button></div></div>
-    <div class="note info" style="margin-bottom:14px">${resumoValidacao()}</div>
+    ${dashLobby()}
     <h2 style="margin:6px 0 10px">Escolha a prova</h2><div class="provas">`;
   for(const m of MANIFEST){
     const id="enem"+m.ano, st=store.estados[id];
@@ -1325,7 +1333,9 @@ function renderLobby(){
       ${ret.ids.has(id)?"":andamento(m,st)}
       ${nh?`<p class="hint" style="margin:8px 0 0">${nh} simulado${nh>1?"s":""} salvo${nh>1?"s":""}</p>`:""}</section>`;
   }
-  h+=`</div><section class="panel" id="dashSec" style="margin-top:8px"><h2>Seu desempenho</h2>${dashHtml(DASH_ESC,true)}</section>
+  h+=`</div>
+    <div class="strip"><span class="hint">Seu preenchimento fica salvo neste navegador. Perdeu tudo? Carregue o seu backup.</span><div class="row"><button class="btn sm" data-act="bkDown" type="button">Baixar backup</button><button class="btn sm" data-act="bkUp" type="button">Carregar backup</button></div></div>
+    <div class="note info" style="margin-bottom:14px">${resumoValidacao()}</div>
     <details class="panel acc foot" style="padding:0"><summary>Como a nota é calculada e validação</summary><div class="acc-b">${TRANSP}</div></details>`;
   main.innerHTML=h;
 }
@@ -1496,6 +1506,7 @@ document.addEventListener("keydown",e=>{
   if(e.key!=="ArrowLeft"&&e.key!=="ArrowRight") return; e.preventDefault();
   const sm=store.sim, dir=(e.key==="ArrowRight"?1:-1)*(sm.lado==="D"?-1:1); sm.pct=Math.max(20,Math.min(80,(sm.pct||78)+5*dir)); salvar(); simAplicarModo();
 });
+document.addEventListener("toggle",e=>{ if(e.target.id==="dashSec"&&store.view==="lobby"){ uiSet("dash",e.target.open); if(e.target.open) initCharts(); } },true);
 document.addEventListener("fullscreenchange",()=>{ const b=$("simFs"); if(b) b.textContent=document.fullscreenElement?"Sair da tela cheia":"Tela cheia"; });
 addEventListener("resize",()=>{ if(store.sim&&!$("sim").classList.contains("hidden")){ clearTimeout(simMontar.rz); simMontar.rz=setTimeout(()=>{ simRender(); simTick(); },200); } });
 carregar();
