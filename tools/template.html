@@ -109,7 +109,7 @@ details.paste summary{cursor:pointer;font-weight:600;font-size:.92rem}
 .stat span{color:var(--muted);font-size:.82rem}
 .sheet{display:grid;grid-auto-flow:row;grid-template-columns:minmax(0,1fr);gap:2px 28px;margin-top:10px}
 @media(min-width:640px){.sheet{grid-auto-flow:column;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(23,auto)}}
-@media(min-width:1000px){.b{width:34px;height:34px}.sheet{grid-template-columns:repeat(3,minmax(0,1fr));gap:2px 20px;grid-template-rows:repeat(15,auto)}}
+@media(min-width:1000px){.b{width:34px;height:34px}}
 .sheet.lock .b{pointer-events:none}
 .q{display:flex;align-items:center;gap:6px;min-width:0;padding:3px 6px;border-radius:12px;border:2px solid transparent}
 .q:focus{outline:none}
@@ -188,11 +188,27 @@ tr.fora td{color:var(--muted)}
 .sim-b{flex:1;min-height:0;display:flex}
 .sim-b.inv{flex-direction:row-reverse}
 .sim-pdf,.sim-card{min-width:0;height:100%}
-.sim-pdf{flex:1 1 50%;background:var(--soft);display:flex;flex-direction:column}
+.sim-pdf{flex:0 0 calc(50% - 5px);background:var(--soft);display:flex;flex-direction:column}
 .sim-pdf iframe{flex:1;width:100%;border:0;background:#fff}
 .sim-pdf .semlink{padding:20px}
-.sim-card{flex:1 1 50%;overflow:auto;padding:12px 14px 40px;border-left:1px solid var(--line)}
-.sim-b.inv .sim-card{border-left:0;border-right:1px solid var(--line)}
+.sim-card{flex:1 1 0;overflow:auto;padding:12px 14px 40px}
+#sim.m-pdf .sim-pdf{flex:1 1 auto!important}
+#sim:not(.m-div) [data-act=simLado]{display:none}
+#sim.m-pdf .zm{display:none}
+.sim-div{flex:0 0 10px;position:relative;cursor:col-resize;touch-action:none;display:flex;align-items:center;justify-content:center;outline:none}
+.sim-div::before{content:"";position:absolute;inset:0 4px;background:var(--line);transition:background .15s}
+.sim-div:hover::before,.sim-div:focus-visible::before,#sim.arrastando .sim-div::before{background:var(--green)}
+.sim-div i{position:relative;z-index:1;width:18px;height:52px;border-radius:9px;background:var(--card);border:1px solid var(--green);color:var(--green);display:grid;place-items:center;font-style:normal;font-size:.8rem;opacity:0;transition:opacity .15s}
+.sim-div:hover i,.sim-div:focus-visible i,#sim.arrastando .sim-div i{opacity:1}
+#sim.arrastando{user-select:none;cursor:col-resize}
+#sim.arrastando iframe{pointer-events:none}
+#sim.m-pdf .sim-div,#sim.m-cartao .sim-div{display:none}
+.zm{display:inline-flex;gap:4px}
+.q .dif{font-size:.66rem;padding:1px 8px;margin-left:4px;white-space:nowrap;flex:none}
+.apg{border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-top:10px;display:grid;gap:6px;justify-items:start}
+.apg span{color:var(--muted);font-size:.86rem}
+.tmp{width:68px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}
+@media(max-width:640px){.lg{display:none}}
 #sim.m-pdf .sim-card,#sim.m-cartao .sim-pdf{display:none}
 #sim.m-cartao .sim-card{border:0}
 #sim:not(.m-cartao) .sheet{grid-auto-flow:row;grid-template-columns:minmax(0,1fr);grid-template-rows:none;gap:2px}
@@ -307,6 +323,7 @@ details.fazer>summary{list-style:none;cursor:pointer;display:inline-flex}details
     <button class="brand" id="home" type="button" title="Voltar ao início">Correção <b>ENEM</b></button>
     <nav class="tabs hidden" id="tabs" role="tablist" aria-label="Áreas da prova"></nav>
     <div class="bar-act">
+      <button class="btn sm hidden" id="hubBtn" type="button" data-act="hub" title="Voltar ao hub de provas">←&nbsp;<span class="lg">Voltar ao&nbsp;</span>hub</button>
       <button class="btn pri sm" id="salvar" type="button">Salvar</button>
       <button class="btn ic sm" id="tema" type="button" aria-label="Alternar tema claro e escuro" title="Alternar tema">◐</button>
     </div>
@@ -381,7 +398,7 @@ function validarStore(o){
     if(EXAMS[o.exam]) st.exam=o.exam;
     if(o.view==="exam") st.view="exam";
     const sm=o.sim; if(sm&&typeof sm==="object"&&EXAMS[sm.ex]&&Array.isArray(sm.areas)&&Number.isFinite(sm.fim)&&Number.isFinite(sm.dur)){
-      const ar=sm.areas.filter(a=>EXAMS[sm.ex].areas[a]); if(ar.length){ const cr=sm.cron||{}; st.sim={ex:sm.ex,areas:ar,fim:sm.fim,ini:Number(sm.ini)||sm.fim-sm.dur*1000,dur:sm.dur,auto:!!sm.auto,lado:sm.lado==="D"?"D":"E",modo:["div","pdf","cartao"].includes(sm.modo)?sm.modo:"div",cron:{est:["dig","rel","qua"].includes(cr.est)?cr.est:"dig",oc:!!cr.oc}}; }
+      const ar=sm.areas.filter(a=>EXAMS[sm.ex].areas[a]); if(ar.length){ const cr=sm.cron||{}; st.sim={ex:sm.ex,areas:ar,fim:sm.fim,ini:Number(sm.ini)||sm.fim-sm.dur*1000,dur:sm.dur,auto:!!sm.auto,lado:sm.lado==="D"?"D":"E",modo:["div","pdf","cartao"].includes(sm.modo)?sm.modo:"div",cron:{est:["dig","rel","qua"].includes(cr.est)?cr.est:"dig",oc:!!cr.oc},pct:Math.max(20,Math.min(80,Number(sm.pct)||50)),z:Math.max(.6,Math.min(1.6,Number(sm.z)||1))}; }
     }
     for(const id in EXAMS) st.estados[id]=validar(o.estados&&o.estados[id],EXAMS[id]);
   } else for(const id in EXAMS) st.estados[id]=novoEstado(EXAMS[id]);
@@ -538,7 +555,7 @@ function resumoGeral(){
 /* ---------- topo, abas, dock ---------- */
 function renderTopo(){
   const tabs=$("tabs"), ex=store.view==="exam";
-  tabs.classList.toggle("hidden",!ex);
+  tabs.classList.toggle("hidden",!ex); $("hubBtn").classList.toggle("hidden",!ex);
   if(!ex) return;
   const g=resumoGeral();
   let h="";
@@ -673,13 +690,14 @@ function avisoOrdem(){
   const dia=d=>Object.keys(AREAS).filter(x=>AREAS[x].dia===d).map(x=>nomes[x]).join(" + ");
   return `<div class="note info" style="margin-bottom:12px">Atenção à ordem desta prova: o <b>dia 1</b> foi ${dia(1)} e o <b>dia 2</b> foi ${dia(2)}. Nas edições mais recentes (2017 em diante) a ordem é outra (dia 1: Linguagens + Humanas).</div>`;
 }
-function sheetInner(a,r){
+function sheetInner(a,r,dif=true){
   const idx=r.idx, base=AREAS[a].base; let h="";
   idx.forEach((k,j)=>{
     const it=DATA.items[a][k], fora=it[0]===null;
     h+=`<div class="q${fora?" fora":""}" data-a="${a}" data-i="${j}" tabindex="${r.pronto?-1:0}" role="radiogroup" aria-label="Questão ${base+j}">${r.pronto?`<button type="button" class="n qn" data-act="enunq" data-a="${a}" data-j="${j}" title="Ver o enunciado da questão ${base+j}" aria-label="Ver o enunciado da questão ${base+j}">${base+j}</button>`:`<span class="n">${base+j}</span>`}<span class="bs">`;
     LETRAS.forEach(l=>{ h+=`<button type="button" class="b" role="radio" aria-checked="false" data-v="${l}" aria-label="Questão ${base+j}, alternativa ${l}" tabindex="-1">${l}</button>`; });
     h+=`<button type="button" class="b br" role="radio" aria-checked="false" data-v="-" title="Em branco" aria-label="Questão ${base+j}, em branco" tabindex="-1">–</button></span>`;
+    if(dif&&!fora){ const dd=dificuldade(a,it[1]); h+=`<span class="dif ${dd[1]}" title="Questão ${dd[0].toLowerCase()} nesta prova (pelo parâmetro b do INEP)">${dd[0]}</span>`; }
     if(fora) h+=`<span class="tag" title="${it[5]===1?"Anulada pelo INEP (gabarito X)":"Excluída pelo INEP da calibração da nota"}: pode marcar para estudar, mas não entra na nota">${it[5]===1?"Anulada":"Não conta"}</span>`;
     h+=`</div>`;
   });
@@ -837,7 +855,7 @@ function renderSetup(){
     <span class="lbl">O que você vai fazer</span><div class="simopt" style="margin:6px 0 14px">${dias.map(x=>{ const aa=Object.keys(AREAS).filter(k=>AREAS[k].dia===x); return opt("d"+x,`Dia ${x} inteiro`,aa.map(k=>AREA_CURTO[k]).join(" + ")+" · "+aa.length*45+" questões"); }).join("")}${Object.keys(AREAS).map(a=>opt("a:"+a,"Só "+AREA_CURTO[a],"45 questões · dia "+AREAS[a].dia)).join("")}</div>
     <span class="lbl">Caderno do dia ${d} (cor da capa)</span><div class="row" style="margin:6px 0 14px">${(CORES[d]||[]).map(k=>`<button type="button" class="chip" aria-pressed="${S.cor[d]===k}" data-act="simCor" data-d="${d}" data-c="${k}"><span class="dot" style="background:${COR_HEX[k]}"></span>${COR_NOME[k]}</button>`).join("")}</div>`;
   if(tl) h+=`<span class="lbl">Idioma da prova</span><div class="row" style="margin:6px 0 14px">${EX.langs.map((t,v)=>`<button type="button" class="chip" aria-pressed="${S.lang===v}" data-act="simLang" data-l="${v}">${t}</button>`).join("")}</div>`;
-  h+=`<span class="lbl">Tempo (minutos)</span><div class="row" style="margin:6px 0 4px"><input id="simMin" type="number" min="5" max="600" step="5" value="${c.min}" style="width:96px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit" aria-label="Tempo em minutos"><span class="hint" id="simMinTxt">${fmtMin(c.min)} · padrão ${fmtMin(simMinPadrao(c.esc))}${c.esc[0]==="d"?" (dia da prova)":" (45 questões a 3min40s)"}</span></div>
+  h+=`<span class="lbl">Tempo de prova</span><div class="row" style="margin:6px 0 4px;align-items:center"><input id="simH" class="tmp" type="number" min="0" max="10" step="1" value="${Math.floor(c.min/60)}" aria-label="Horas"><span>h</span><input id="simM" class="tmp" type="number" min="0" max="59" step="5" value="${c.min%60}" aria-label="Minutos"><span>min</span><span class="hint" id="simMinTxt">${fmtMin(c.min)} · padrão ${fmtMin(simMinPadrao(c.esc))}${c.esc[0]==="d"?" (dia da prova)":" (45 questões a 3min40s)"}</span></div>
     <label class="hint" style="display:flex;gap:8px;align-items:center;margin:10px 0 0"><input type="checkbox" id="simAuto" ${c.auto?"checked":""}> Ao zerar o tempo, travar o cartão e corrigir sozinho</label>`;
   const falta=[]; if(!S.cor[d]) falta.push("a cor do caderno"); if(tl&&S.lang===null) falta.push("o idioma");
   if(falta.length) h+=`<div class="note" style="margin-top:12px">Escolha ${falta.join(" e ")} para começar.</div>`;
@@ -845,15 +863,33 @@ function renderSetup(){
   h+=`<div class="modal-act"><button class="btn" type="button" data-act="fechar">Cancelar</button><button class="btn pri" type="button" data-act="simGo" ${falta.length?"disabled":""}>Começar agora</button></div>`;
   abrirModal(h); $("modalCard").classList.add("wide");
 }
+function simTelaCheia(){ try{ if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); }catch(_){} }
+function simConfirmar(){
+  const c=SIMCFG, ar=simAreasDe(c.esc), min=Math.max(5,Math.min(600,Math.round(+c.min)||simMinPadrao(c.esc)));
+  const d=simDiaDe(c.esc);
+  abrirModal(`<h3>Começar o simulado agora?</h3>
+    <p style="margin:6px 0">${EX.nome} · ${ar.map(a=>AREA_CURTO[a]).join(" + ")} · caderno ${COR_NOME[S.cor[d]]}</p>
+    <ul class="hint" style="margin:8px 0 0;padding-left:18px;line-height:1.55">
+      <li>O cronômetro de <b>${fmtMin(min)}</b> começa <b>assim que você clicar</b> e não pausa, nem se você recarregar a página.</li>
+      <li>A página entra em <b>tela cheia</b> (Esc sai; dá para voltar pelo botão no topo).</li>
+      <li>${c.auto?"Quando o tempo zerar, o cartão trava e <b>é corrigido automaticamente</b>.":"Quando o tempo zerar, você continua no excedente e corrige quando quiser."}</li>
+      <li>Você pode encerrar antes pelo botão <b>Encerrar e corrigir</b>.</li>
+    </ul>
+    ${simRascunho()?`<div class="note info" style="margin-top:12px">Já existe preenchimento nesta prova. ${jaSalvo()?"Ele já está no histórico.":"Ele será guardado no histórico antes de começar."} O simulado novo começa com o cartão limpo e terá o próprio registro no histórico e no dashboard.</div>`:""}
+    <p class="hint" style="margin:12px 0 0">Separe o tempo, deixe papel e caneta à mão e feche o que puder distrair.</p>
+    <div class="modal-act"><button class="btn" type="button" data-act="simVoltar">Voltar</button><button class="btn pri" type="button" data-act="simStart">Estou pronto, começar</button></div>`);
+  $("modalCard").classList.add("wide");
+}
 function simIniciar(){
   const c=SIMCFG, ar=simAreasDe(c.esc), min=Math.max(5,Math.min(600,Math.round(+c.min)||simMinPadrao(c.esc)));
-  const sujo=ar.filter(a=>S.ans[a].some(x=>x!=="")||S.env[a]);
-  if(sujo.length&&!confirm("Já existem marcações em "+sujo.map(a=>AREA_CURTO[a]).join(" e ")+". Um simulado novo apaga essas marcações (o histórico salvo não é afetado). Continuar?")) return;
-  ar.forEach(a=>{ S.ans[a]=Array(45).fill(""); S.env[a]=false; });
+  if(simRascunho()&&!jaSalvo()) salvarHist(nomeProximo()+" (antes do cronometrado)",true);
+  for(const a in AREAS){ S.ans[a]=Array(45).fill(""); S.env[a]=false; } S.red=[null,null,null,null,null];
   const agora=Date.now(); S.tab=ar[0];
-  store.sim={ex:EX.id,areas:ar,ini:agora,fim:agora+min*60000,dur:min*60,auto:!!c.auto,lado:"E",modo:innerWidth<800?"cartao":"div",cron:{est:"dig",oc:false}};
+  store.sim={ex:EX.id,areas:ar,ini:agora,fim:agora+min*60000,dur:min*60,auto:!!c.auto,lado:"E",modo:innerWidth<800?"cartao":"div",cron:{est:"dig",oc:false},pct:50,z:1};
   fecharModal(); salvar(); simMontar();
+  try{ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); }catch(_){}
 }
+function simRascunho(){ return Object.values(S.ans).some(v=>v.some(x=>x!==""))||Object.values(S.env).some(Boolean); }
 function simMontar(){
   const sm=store.sim; if(!sm||sm.ex!==EX.id||!EX.dados) return;
   if(sm.fim<=Date.now()&&sm.auto){ simFinalizar(true); return; }
@@ -863,23 +899,45 @@ function simMontar(){
 }
 function simRender(){
   const sm=store.sim, el=$("sim"), d=AREAS[sm.areas[0]].dia, url=simUrl(d), estreito=innerWidth<800;
-  let modo=sm.modo; if(estreito&&modo==="div") modo="cartao"; if(!url&&modo!=="cartao") modo="cartao";
-  el.className="m-"+modo;
+  const cr=sm.cron||(sm.cron={est:"dig",oc:false});
   const nomes=sm.areas.map(a=>AREA_CURTO[a]).join(" + ");
   const segs=[...(estreito?[]:[["div","Dividido"]]),["pdf","Prova"],["cartao","Cartão"]];
-  const cr=sm.cron||(sm.cron={est:"dig",oc:false});
   let h=`<div class="sim-h"><div class="ttl">${EX.nome} · ${nomes}<small>Caderno ${COR_NOME[S.cor[d]]}${sm.areas.some(a=>AREAS[a].lang)?" · "+EX.langs[S.lang]:""} · <span id="sim-prog"></span></small></div>
     <div id="sim-cron" role="timer" aria-live="off"></div><button class="btn ic sm" type="button" data-act="simCronEst" title="Trocar o estilo do cronômetro" aria-label="Trocar o estilo do cronômetro">⟳</button><button class="btn sm" type="button" data-act="simCronOc" aria-pressed="${!!cr.oc}">${cr.oc?"Mostrar tempo":"Ocultar tempo"}</button><span class="sp"></span>
-    <div class="seg" role="group" aria-label="Visualização">${segs.map(([k,t])=>`<button type="button" aria-pressed="${modo===k}" data-act="simModo" data-m="${k}">${t}</button>`).join("")}</div>
-    ${modo==="div"?`<button class="btn sm" type="button" data-act="simLado" title="Trocar de lado">⇄ Trocar lados</button>`:""}
+    <div class="seg" id="simSeg" role="group" aria-label="Visualização">${segs.map(([k,t])=>`<button type="button" aria-pressed="false" data-act="simModo" data-m="${k}">${t}</button>`).join("")}</div>
+    <button class="btn sm" type="button" data-act="simLado" title="Trocar de lado">⇄ Trocar lados</button>
+    <span class="zm" role="group" aria-label="Tamanho do cartão"><button class="btn ic sm" type="button" data-act="simZ" data-d="-1" title="Diminuir o cartão" aria-label="Diminuir o cartão">A−</button><button class="btn ic sm" type="button" data-act="simZ" data-d="1" title="Aumentar o cartão" aria-label="Aumentar o cartão">A+</button></span>
+    <button class="btn sm" type="button" id="simFs" data-act="simFs">${document.fullscreenElement?"Sair da tela cheia":"Tela cheia"}</button>
     ${url?`<a class="btn sm" href="${url}" target="_blank" rel="noopener">Abrir PDF em outra aba</a>`:""}
-    <button class="btn pri sm" type="button" data-act="simEnd">Encerrar e corrigir</button></div>
+    <button class="btn sm danger" type="button" data-act="simSair">Sair</button><button class="btn pri sm" type="button" data-act="simEnd">Encerrar e corrigir</button></div>
     ${cr.est==="qua"&&!cr.oc?`<div class="sim-quadro" id="sim-quadro"></div>`:""}
-    <div class="sim-b${sm.lado==="D"?" inv":""}"><div class="sim-pdf">${url?`<iframe src="${url}#view=FitH" title="Caderno de questões ${EX.nome}"></iframe>`:`<div class="semlink hint">Sem link do PDF para este caderno. Abra o caderno no <a href="${LINK_INEP}" target="_blank" rel="noopener">site do INEP</a> e use só o cartão aqui.</div>`}</div><div class="sim-card">`;
+    <div class="sim-b" id="simB"><div class="sim-pdf" id="simPdf">${url?`<iframe src="${url}#view=FitH&navpanes=0" title="Caderno de questões ${EX.nome}"></iframe>`:`<div class="semlink hint">Sem link do PDF para este caderno. Abra o caderno no <a href="${LINK_INEP}" target="_blank" rel="noopener">site do INEP</a> e use só o cartão aqui.</div>`}</div><div class="sim-div" id="simDiv" role="separator" aria-orientation="vertical" aria-label="Arraste para redimensionar a prova e o cartão" title="Arraste para redimensionar" tabindex="0"><i>⋮</i></div><div class="sim-card"><div id="simZoom">`;
   sm.areas.forEach(a=>{ const r=analisarC(a);
-    h+=`<section class="panel area" id="area-${a}"><div class="area-h"><div><h2>${AREAS[a].nome}<small id="prog-${a}"></small></h2></div></div><div class="sheet" id="sheet-${a}" role="group" aria-label="Cartão-resposta ${AREAS[a].nome}">${sheetInner(a,r)}</div></section>`; });
-  el.innerHTML=h+`</div></div>`;
-  sm.areas.forEach(a=>pintar(a,true)); simProg();
+    h+=`<section class="panel area" id="area-${a}"><div class="area-h"><div><h2>${AREAS[a].nome}<small id="prog-${a}"></small></h2></div></div><div class="sheet" id="sheet-${a}" role="group" aria-label="Cartão-resposta ${AREAS[a].nome}">${sheetInner(a,r,false)}</div></section>`; });
+  el.innerHTML=h+`</div></div></div>`;
+  simAplicarModo(); sm.areas.forEach(a=>pintar(a,true)); simProg();
+}
+/* troca de visão/lado/tamanho sem recarregar o PDF (preserva a página em que a pessoa está) */
+function simAplicarModo(){
+  const sm=store.sim, d=AREAS[sm.areas[0]].dia, url=simUrl(d), estreito=innerWidth<800;
+  let modo=sm.modo; if(estreito&&modo==="div") modo="cartao"; if(!url&&modo!=="cartao") modo="cartao";
+  $("sim").className="m-"+modo;
+  document.querySelectorAll("#simSeg [data-m]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===modo)));
+  $("simB").classList.toggle("inv",sm.lado==="D");
+  $("simPdf").style.flex=`0 0 calc(${sm.pct||50}% - 5px)`;
+  $("simZoom").style.zoom=sm.z||1;
+}
+function simDescartar(){
+  const sm=store.sim; if(!sm) return; clearInterval(SIMTK); SIMTK=null;
+  sm.areas.forEach(a=>{ S.ans[a]=Array(45).fill(""); S.env[a]=false; });
+  store.sim=null; store.view="lobby"; salvar();
+  $("sim").classList.add("hidden"); $("sim").innerHTML=""; document.body.style.overflow=""; try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(_){}
+  fecharModal(); renderAll(); window.scrollTo({top:0,behavior:"auto"}); toast("Simulado descartado. Nada foi para o histórico.");
+}
+function simPerguntarSair(){
+  abrirModal(`<h3>Sair do simulado?</h3><p>Descartar <b>apaga as marcações e o tempo</b> deste simulado e nada vai para o histórico. O que você tinha antes de começar continua guardado no histórico.</p>
+    <p class="hint">Quer só terminar? Use <b>Encerrar e corrigir</b> no topo.</p>
+    <div class="modal-act"><button class="btn pri" type="button" data-act="fechar">Continuar o simulado</button><button class="btn danger" type="button" data-act="simDescartar">Descartar e sair</button></div>`);
 }
 function simProg(){
   const sm=store.sim; if(!sm) return; let f=0,t=0; sm.areas.forEach(a=>{ const r=analisarC(a); f+=r.feitas; t+=r.validas.length; });
@@ -918,11 +976,12 @@ function simFinalizar(auto){
   const sm=store.sim; if(!sm) return; clearInterval(SIMTK); SIMTK=null;
   const usado=Math.max(0,Math.min(Math.round((Date.now()-sm.ini)/1000),auto?sm.dur:Infinity));
   sm.areas.forEach(a=>{ S.env[a]=true; });
+  const nomeHist=nomeProximo()+" · cronometrado"; salvarHist(nomeHist,true);
   const ar=sm.areas; store.sim=null; S.tab=ar[0]; salvar();
-  $("sim").classList.add("hidden"); $("sim").innerHTML=""; document.body.style.overflow=""; fecharModal();
+  $("sim").classList.add("hidden"); $("sim").innerHTML=""; document.body.style.overflow=""; try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(_){} fecharModal();
   renderAll(); window.scrollTo({top:0,behavior:"auto"});
   let ac=0,er=0,br=0,tot=0; const notas=ar.map(a=>{ const r=analisarC(a); ac+=r.acertos; er+=r.erros; br+=r.brancos; tot+=r.validas.length; return `<div class="stat"><b>${r.nota!==null?fmt(r.nota):r.acertos+"/"+r.validas.length}</b><span>${AREAS[a].nome}</span></div>`; }).join("");
-  abrirModal(`<h3>${auto?"Tempo esgotado: simulado corrigido":"Simulado corrigido"}</h3><p class="hint" style="margin:4px 0 10px">Tempo usado: <b>${fmtDur(usado)}</b></p><div class="stats pan">${notas}</div><div style="margin-top:12px">${panTiles(ac,er,br,tot)}</div>
+  abrirModal(`<h3>${auto?"Tempo esgotado: simulado corrigido":"Simulado corrigido"}</h3><p class="hint" style="margin:4px 0 10px">Tempo usado: <b>${fmtDur(usado)}</b> · salvo no histórico como “${esc(nomeHist)}”</p><div class="stats pan">${notas}</div><div style="margin-top:12px">${panTiles(ac,er,br,tot)}</div>
     <div class="modal-act"><button class="btn pri" type="button" data-act="fechar">Ver minha correção</button><button class="btn" type="button" data-act="tab" data-t="RES">Ver panorama por dificuldade</button></div>`);
 }
 function simPerguntarFim(){
@@ -1030,13 +1089,26 @@ function renderResPane(){
     <section class="panel">${stripHtml()}</section>
     <details class="panel acc foot" style="padding:0"><summary>Como a nota é calculada e validação</summary><div class="acc-b">${TRANSP}</div></details>`;
 }
-function stripHtml(){ return `<div class="row" style="justify-content:space-between"><span class="hint">Seu preenchimento fica salvo neste navegador. Perdeu tudo? Carregue o seu backup.</span><div class="row"><button class="btn sm" data-act="bkDown" type="button">Baixar backup</button><button class="btn sm" data-act="bkUp" type="button">Carregar backup</button><button class="btn sm danger" data-act="limparTudo" type="button">Apagar tudo</button></div></div>`; }
-function salvarHist(){
-  const nome=(($("nomeSim")||{}).value||"").trim()||nomeProximo();
+const KEY_LIXO="correcao_enem_lixeira";
+function lixeiraGuardar(rot){ try{ localStorage.setItem(KEY_LIXO,JSON.stringify({t:Date.now(),rot,store})); }catch(_){} }
+function lixeiraLer(){ try{ const o=JSON.parse(localStorage.getItem(KEY_LIXO)); return o&&o.store?o:null; }catch(_){ return null; } }
+function abrirApagar(){
+  const ncard=Object.values(S.ans).some(v=>v.some(x=>x!=="")), nh=S.hist.length, lx=lixeiraLer();
+  const comDados=Object.values(store.estados).filter(e=>e.hist.length||Object.values(e.ans).some(v=>v.some(x=>x!==""))).length, totalH=Object.values(store.estados).reduce((n,e)=>n+e.hist.length,0);
+  abrirModal(`<h3>Apagar dados</h3><p class="hint" style="margin:4px 0 0">Escolha exatamente o que apagar. Para excluir <b>um simulado só</b> do histórico, use o botão de excluir na linha dele no dashboard.</p>
+    <div class="apg"><b>Só o cartão atual de ${EX.nome}</b><span>Apaga marcações e correções do cartão. Os ${nh} simulado(s) salvos no histórico desta prova <b>ficam</b>, e as outras provas também.</span><button class="btn sm danger" type="button" data-act="apagarCartao" ${ncard?"":"disabled"}>Apagar só o cartão</button></div>
+    <div class="apg"><b>Tudo de ${EX.nome}</b><span>Cartão e os ${nh} simulado(s) do histórico <b>desta prova</b>. As outras provas ficam.</span><button class="btn sm danger" type="button" data-act="apagarProva" ${ncard||nh?"":"disabled"}>Apagar tudo de ${EX.nome}</button></div>
+    <div class="apg"><b>Tudo, de todas as provas</b><span>${comDados} prova(s) com dados e ${totalH} simulado(s) no histórico. Baixa um backup antes e pede confirmação.</span><button class="btn sm danger" type="button" data-act="apagarTudo">Apagar tudo…</button></div>
+    ${lx?`<div class="apg"><b>Desfazer o último apagamento</b><span>${new Date(lx.t).toLocaleString("pt-BR")} · ${esc(lx.rot)}. Restaura tudo como estava antes dele.</span><button class="btn sm" type="button" data-act="restaurar">Restaurar</button></div>`:""}
+    <div class="modal-act"><button class="btn pri" type="button" data-act="fechar">Cancelar</button></div>`);
+}
+function stripHtml(){ return `<div class="row" style="justify-content:space-between"><span class="hint">Seu preenchimento fica salvo neste navegador. Perdeu tudo? Carregue o seu backup.</span><div class="row"><button class="btn sm" data-act="bkDown" type="button">Baixar backup</button><button class="btn sm" data-act="bkUp" type="button">Carregar backup</button><button class="btn sm danger" data-act="limparTudo" type="button">Apagar dados…</button></div></div>`; }
+function salvarHist(nomeOpt,quieto){
+  const nome=nomeOpt||(($("nomeSim")||{}).value||"").trim()||nomeProximo();
   const n=notasDe(S), notas={}; for(const s of SERIES) notas[s[0]]=n[s[0]]===undefined?null:n[s[0]];
   const copia=JSON.parse(JSON.stringify({cor:S.cor,lang:S.lang,ans:S.ans,env:S.env,red:S.red}));
   const pn=panDe(S); S.hist.push({id:Date.now(),t:Date.now(),nn:n._n,nome:nome.slice(0,60),...copia,notas,pan:pn.n?{ac:pn.ac,er:pn.er,br:pn.br,tot:pn.tot,n:pn.n}:null}); if(S.hist.length>100) S.hist.shift();
-  salvar(); renderPane(); toast("Simulado salvo no histórico.");
+  salvar(); if(!quieto){ renderPane(); toast("Simulado salvo no histórico."); }
 }
 function novoSim(){
   const temDados=Object.values(S.ans).some(v=>v.some(x=>x!==""));
@@ -1280,11 +1352,17 @@ document.addEventListener("click",e=>{
     case "simEsc": { SIMCFG.esc=t.dataset.v; if(!SIMCFG.edit) SIMCFG.min=simMinPadrao(SIMCFG.esc); renderSetup(); break; }
     case "simCor": S.cor[+t.dataset.d]=t.dataset.c; salvar(); renderSetup(); break;
     case "simLang": S.lang=+t.dataset.l; salvar(); renderSetup(); break;
-    case "simGo": simIniciar(); break;
-    case "simModo": { store.sim.modo=t.dataset.m; salvar(); simRender(); simTick(); break; }
-    case "simLado": { store.sim.lado=store.sim.lado==="D"?"E":"D"; salvar(); simRender(); simTick(); break; }
+    case "simGo": simConfirmar(); break;
+    case "simStart": simIniciar(); break;
+    case "simFs": simTelaCheia(); break;
+    case "simModo": { store.sim.modo=t.dataset.m; salvar(); simAplicarModo(); break; }
+    case "simLado": { store.sim.lado=store.sim.lado==="D"?"E":"D"; salvar(); simAplicarModo(); break; }
+    case "simZ": { const sm=store.sim; sm.z=Math.max(.6,Math.min(1.6,Math.round(((sm.z||1)+.1*(+t.dataset.d))*10)/10)); salvar(); simAplicarModo(); break; }
+    case "simSair": simPerguntarSair(); break;
+    case "simDescartar": simDescartar(); break;
     case "simCronEst": { const c=store.sim.cron, o=["dig","rel","qua"]; c.est=o[(o.indexOf(c.est)+1)%3]; c.oc=false; salvar(); simRender(); simTick(); break; }
     case "simCronOc": { store.sim.cron.oc=!store.sim.cron.oc; salvar(); simRender(); simTick(); break; }
+    case "simVoltar": renderSetup(); break;
     case "simEnd": simPerguntarFim(); break;
     case "simEndGo": simFinalizar(false); break;
     case "enun": {
@@ -1302,11 +1380,17 @@ document.addEventListener("click",e=>{
     case "abrirExam": abrirExame(t.dataset.ex); break;
     case "bkDown": baixarBackup(); break;
     case "bkUp": $("bkFile").click(); break;
-    case "limparTudo": if(confirm("Apagar TODO o preenchimento e o histórico deste navegador? Baixe o backup antes se quiser guardar.")){ store=validarStore(null); setExam(store.exam); try{localStorage.removeItem(KEY);}catch(_){} renderAll(); toast("Tudo limpo."); } break;
+    case "limparTudo": abrirApagar(); break;
+    case "apagarCartao": { lixeiraGuardar("cartão de "+EX.nome); const h=S.hist; Object.assign(S,novoEstado(EX),{hist:h}); salvar(); fecharModal(); renderAll(); toast("Cartão de "+EX.nome+" apagado. O histórico foi mantido."); break; }
+    case "apagarProva": { lixeiraGuardar("tudo de "+EX.nome); store.estados[EX.id]=novoEstado(EX); setExam(EX.id); if(store.sim&&store.sim.ex===EX.id) store.sim=null; salvar(); fecharModal(); renderAll(); toast("Tudo de "+EX.nome+" apagado. As outras provas foram mantidas."); break; }
+    case "apagarTudo": abrirModal(`<h3>Apagar tudo de todas as provas?</h3><p>Isso apaga <b>todos os cartões e todo o histórico de todas as provas</b> neste navegador. Um backup será baixado antes, e você poderá desfazer pela opção "Apagar dados".</p><p class="hint">Para confirmar, digite <b>APAGAR</b>:</p><input id="apgTxt" type="text" autocomplete="off" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit"><div class="modal-act"><button class="btn pri" type="button" data-act="fechar">Cancelar</button><button class="btn danger" type="button" id="apgGo" data-act="apagarTudoGo" disabled>Apagar tudo</button></div>`); break;
+    case "apagarTudoGo": { if(($("apgTxt")||{}).value.trim().toUpperCase()!=="APAGAR") break; baixarBackup(); lixeiraGuardar("tudo, todas as provas"); store=validarStore(null); setExam(store.exam); try{localStorage.removeItem(KEY);}catch(_){} salvar(); fecharModal(); renderAll(); toast("Tudo apagado. Backup baixado; dá para desfazer em Apagar dados."); break; }
+    case "restaurar": { const lx=lixeiraLer(); if(!lx) break; store=validarStore(lx.store); store.view="lobby"; store.sim=null; setExam(store.exam); salvar(); fecharModal(); renderAll(); toast("Restaurado: "+lx.rot+"."); break; }
   }
 });
 document.addEventListener("input",e=>{
-  if(e.target.id==="simMin"&&SIMCFG){ SIMCFG.min=Math.max(5,Math.min(600,Math.round(+e.target.value)||5)); SIMCFG.edit=true; const x=$("simMinTxt"); if(x) x.textContent=fmtMin(SIMCFG.min)+" · padrão "+fmtMin(simMinPadrao(SIMCFG.esc)); }
+  if(e.target.id==="apgTxt"){ const g=$("apgGo"); if(g) g.disabled=e.target.value.trim().toUpperCase()!=="APAGAR"; return; }
+  if((e.target.id==="simH"||e.target.id==="simM")&&SIMCFG){ const h=Math.max(0,Math.min(10,Math.floor(+$("simH").value)||0)), mi=Math.max(0,Math.min(59,Math.floor(+$("simM").value)||0)); SIMCFG.min=Math.max(5,h*60+mi); SIMCFG.edit=true; const x=$("simMinTxt"); if(x) x.textContent=fmtMin(SIMCFG.min)+" · padrão "+fmtMin(simMinPadrao(SIMCFG.esc)); }
 });
 document.addEventListener("change",e=>{
   if(e.target.id==="simAuto"&&SIMCFG){ SIMCFG.auto=e.target.checked; return; }
@@ -1385,6 +1469,19 @@ function aplicaTema(t){ document.documentElement.setAttribute("data-theme",t); }
   $("tema").onclick=()=>{ t=t==="dark"?"light":"dark"; aplicaTema(t); try{localStorage.setItem(KEY_TEMA,t);}catch(_){} };
 })();
 
+document.addEventListener("pointerdown",e=>{
+  const dv=e.target.closest&&e.target.closest("#simDiv"); if(!dv||!store.sim) return; e.preventDefault();
+  const b=$("simB"), sm=store.sim, el=$("sim"); el.classList.add("arrastando"); try{ dv.setPointerCapture(e.pointerId); }catch(_){}
+  const mv=ev=>{ const r=b.getBoundingClientRect(), x=sm.lado==="D"?(r.right-ev.clientX):(ev.clientX-r.left); sm.pct=Math.round(Math.max(20,Math.min(80,100*x/r.width))*10)/10; $("simPdf").style.flex=`0 0 calc(${sm.pct}% - 5px)`; };
+  const up=()=>{ dv.removeEventListener("pointermove",mv); dv.removeEventListener("pointerup",up); dv.removeEventListener("pointercancel",up); el.classList.remove("arrastando"); salvar(); };
+  dv.addEventListener("pointermove",mv); dv.addEventListener("pointerup",up); dv.addEventListener("pointercancel",up);
+});
+document.addEventListener("keydown",e=>{
+  if(!store.sim||!e.target.closest||!e.target.closest("#simDiv")) return;
+  if(e.key!=="ArrowLeft"&&e.key!=="ArrowRight") return; e.preventDefault();
+  const sm=store.sim, dir=(e.key==="ArrowRight"?1:-1)*(sm.lado==="D"?-1:1); sm.pct=Math.max(20,Math.min(80,(sm.pct||50)+5*dir)); salvar(); simAplicarModo();
+});
+document.addEventListener("fullscreenchange",()=>{ const b=$("simFs"); if(b) b.textContent=document.fullscreenElement?"Sair da tela cheia":"Tela cheia"; });
 addEventListener("resize",()=>{ if(store.sim&&!$("sim").classList.contains("hidden")){ clearTimeout(simMontar.rz); simMontar.rz=setTimeout(()=>{ simRender(); simTick(); },200); } });
 carregar();
 if(store.view==="exam") abrirExame(store.exam); else renderAll();
