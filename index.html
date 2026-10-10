@@ -420,6 +420,13 @@ function renderTopo(){
 }
 function renderDock(){
   const el=$("dock"), a=S.tab;
+  if(store.view==="exam"&&a==="RED"){
+    const so=redSoma(), n=S.red.filter(x=>x!==null).length;
+    el.classList.remove("hidden");
+    el.innerHTML=`<div class="dock-in"><div class="info"><span class="nota">${so!==null?so:"–"}</span> <span class="hint">redação · ${n}/5</span></div>
+      <button class="btn pri" type="button" data-act="tab" data-t="RES">Ver média simples →</button></div>`;
+    return;
+  }
   if(store.view!=="exam"||!AREAS[a]||!caderno(a)){ el.classList.add("hidden"); el.innerHTML=""; return; }
   const r=analisarC(a); el.classList.remove("hidden");
   if(!r.pronto){
@@ -830,7 +837,7 @@ document.addEventListener("click",e=>{
   switch(act){
     case "tab": fecharModal(); irAba(t.dataset.t); break;
     case "dia": { const d=+t.dataset.d, atual=AREAS[S.tab]&&AREAS[S.tab].dia; if(atual!==d) irAba(Object.keys(AREAS).find(x=>AREAS[x].dia===d)); break; }
-    case "nota": { const i=+t.dataset.i, v=+t.dataset.v; S.red[i]=S.red[i]===v?null:v; REDFOCO=i; salvar(); const y=window.scrollY; renderRedPane(); renderTopo(); posRed(y); break; }
+    case "nota": { const i=+t.dataset.i, v=+t.dataset.v; S.red[i]=S.red[i]===v?null:v; REDFOCO=i; salvar(); const y=window.scrollY; renderRedPane(); renderTopo(); renderDock(); posRed(y); break; }
     case "comp": { REDFOCO=+t.dataset.i; const y=window.scrollY; renderRedPane(); posRed(y); break; }
     case "cor": S.cor[+t.dataset.d]=t.dataset.c; salvar(); renderPane(); break;
     case "lang": S.lang=+t.dataset.l; salvar(); renderPane(); break;
