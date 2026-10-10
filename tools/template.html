@@ -427,6 +427,13 @@ function renderDock(){
       <button class="btn pri" type="button" data-act="tab" data-t="RES">Ver média simples →</button></div>`;
     return;
   }
+  if(store.view==="exam"&&a==="RES"){
+    const g=resumoGeral(), salvo=jaSalvo();
+    el.classList.remove("hidden");
+    el.innerHTML=`<div class="dock-in"><div class="info">${g.media!==null?`<span class="nota">${fmt(g.media)}</span> <span class="hint">média simples${g.completo?"":" (parcial)"} · ${salvo?"salvo no histórico":"ainda não salvo"}</span>`:`<span class="hint">Corrija ao menos uma área para ver a média.</span>`}</div>
+      <div class="row"><button class="btn" type="button" data-act="hub">Voltar ao hub</button>${g.media!==null?`<button class="btn pri" type="button" data-act="dash">${salvo?"Ver dashboard":"Salvar e ver dashboard"}</button>`:""}</div></div>`;
+    return;
+  }
   if(store.view!=="exam"||!AREAS[a]||!caderno(a)){ el.classList.add("hidden"); el.innerHTML=""; return; }
   const r=analisarC(a); el.classList.remove("hidden");
   if(!r.pronto){
@@ -438,6 +445,8 @@ function renderDock(){
       <div class="row"><button class="btn" type="button" data-act="editar" data-a="${a}">Editar respostas</button>${prox?`<button class="btn pri" type="button" data-act="tab" data-t="${prox}">${prox==="RES"?"Ver resultado":prox==="RED"?"Redação":"Próxima: "+prox} →</button>`:""}</div></div>`;
   }
 }
+function sig(st){ return JSON.stringify([st.cor,st.lang,st.ans,st.env,st.red]); }
+function jaSalvo(){ const u=S.hist[S.hist.length-1]; return !!u&&sig(u)===sig(S); }
 function proximaAba(a){ const i=TABS.indexOf(a); return i>=0&&i<TABS.length-1?TABS[i+1]:null; }
 
 /* ---------- navegação ---------- */
@@ -691,7 +700,7 @@ function renderResPane(){
     <section class="panel"><h2>Guardar no histórico</h2>
       <p class="hint" style="margin:4px 0 10px">Salve este simulado para acompanhar a sua evolução quando refizer a prova. Depois, comece um novo para preencher de novo.</p>
       <div class="row"><input type="text" id="nomeSim" maxlength="60" value="${esc(nomeProximo())}" aria-label="Nome do simulado" style="flex:1;min-width:180px"><button class="btn pri" type="button" data-act="salvarHist" ${g.n?"":"disabled"}>Salvar no histórico</button><button class="btn" type="button" data-act="novoSim">Novo simulado (limpa o cartão)</button></div></section>
-    <section class="panel"><h2>Sua evolução</h2>${dashHtml(EX.id)}</section>
+    <section class="panel" id="dashSec"><h2>Sua evolução</h2>${dashHtml(EX.id)}</section>
     <section class="panel">${stripHtml()}</section>
     <details class="panel acc foot" style="padding:0"><summary>Como a nota é calculada e validação</summary><div class="acc-b">${TRANSP}</div></details>`;
 }
@@ -855,6 +864,8 @@ document.addEventListener("click",e=>{
       else { const r=analisarC(a), n=document.createElement("tr"); n.className="enun-r"; n.innerHTML=`<td colspan="12">${enunHtml(a,+t.dataset.j,r)}</td>`; tr.after(n); t.textContent="Ocultar"; }
       break; }
     case "salvarHist": salvarHist(); break;
+    case "hub": store.view="lobby"; salvar(); renderAll(); window.scrollTo({top:0,behavior:"auto"}); break;
+    case "dash": { if(!jaSalvo()&&resumoGeral().n) salvarHist(); const d=$("dashSec"); if(d) d.scrollIntoView({block:"start"}); break; }
     case "novoSim": novoSim(); break;
     case "ser": { const s=t.dataset.s; if(CH_SEL.has(s)){ if(CH_SEL.size>1) CH_SEL.delete(s); } else CH_SEL.add(s); renderAll(); break; }
     case "abrirHist": setExam(t.dataset.ex); abrirHist(+t.dataset.id); break;
