@@ -169,6 +169,45 @@ tr.fora td{color:var(--muted)}
 .par{display:none}.showpar .par{display:table-cell}
 .pos{color:var(--ok);font-weight:600}.neg{color:var(--bad);font-weight:600}
 .dif{font-size:.78rem;padding:2px 10px;border-radius:999px;background:var(--soft)}
+.qn{appearance:none;background:none;border:0;font:inherit;cursor:pointer;border-radius:8px;padding:2px 4px;text-decoration:underline dotted;text-underline-offset:3px}
+.qn:hover{color:var(--ink);background:var(--soft)}
+.qn:focus-visible{outline:2px solid var(--blue)}
+.modal-card.wide{max-width:680px}
+#sim{position:fixed;inset:0;z-index:30;background:var(--bg);display:flex;flex-direction:column}
+.sim-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:8px 14px;background:var(--bar);border-bottom:1px solid var(--line)}
+.sim-h .ttl{font-weight:700;font-size:.95rem;min-width:0}.sim-h .ttl small{display:block;font-weight:400;color:var(--muted);font-size:.78rem}
+.sim-t{font:700 1.7rem/1 ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums;padding:6px 12px;border-radius:12px;background:var(--greenbg);color:var(--green);display:inline-block}
+.sim-t.warn{background:var(--warnbg);color:var(--warn)}.sim-t.bad{background:var(--badbg);color:var(--bad)}
+.sim-h .sp{flex:1}
+.sim-h .seg{margin:0}
+.sim-quadro{display:flex;flex-wrap:wrap;gap:6px;padding:6px 14px;background:var(--soft);border-bottom:1px solid var(--line)}
+.mq{font-size:.82rem;padding:3px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line);white-space:nowrap}
+.mq.pas{text-decoration:line-through;color:var(--muted);opacity:.65}
+.mq.al{border-color:var(--warn);color:var(--warn)}
+.mq.at{border-color:var(--green);box-shadow:0 0 0 2px var(--greenbg)}
+.sim-b{flex:1;min-height:0;display:flex}
+.sim-b.inv{flex-direction:row-reverse}
+.sim-pdf,.sim-card{min-width:0;height:100%}
+.sim-pdf{flex:1 1 50%;background:var(--soft);display:flex;flex-direction:column}
+.sim-pdf iframe{flex:1;width:100%;border:0;background:#fff}
+.sim-pdf .semlink{padding:20px}
+.sim-card{flex:1 1 50%;overflow:auto;padding:12px 14px 40px;border-left:1px solid var(--line)}
+.sim-b.inv .sim-card{border-left:0;border-right:1px solid var(--line)}
+#sim.m-pdf .sim-card,#sim.m-cartao .sim-pdf{display:none}
+#sim.m-cartao .sim-card{border:0}
+#sim:not(.m-cartao) .sheet{grid-auto-flow:row;grid-template-columns:minmax(0,1fr);grid-template-rows:none;gap:2px}
+#sim .area-h{margin-bottom:4px}
+.simopt{display:flex;flex-wrap:wrap;gap:8px}
+.simopt .chip small{display:block;font-size:.72rem;color:var(--muted)}
+@media(max-width:800px){.sim-t{font-size:1.3rem}}
+.enun-top{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin:6px 0 10px}
+.dtier{display:grid;gap:10px;grid-template-columns:repeat(3,1fr);margin-top:10px}
+@media(max-width:480px){.dtier{grid-template-columns:1fr}}
+.dt{border:1px solid var(--line);border-radius:14px;padding:10px 14px;background:var(--card)}
+.dt h4{margin:0 0 4px;font-size:.82rem;font-weight:600}
+.dt b{font-size:1.5rem;line-height:1.15;font-variant-numeric:tabular-nums}
+.dt span{display:block;color:var(--muted);font-size:.82rem}
+.dt.alerta{border-color:var(--bad);background:var(--badbg)}
 .dif.f{background:var(--greenbg);color:var(--green)}.dif.m{background:var(--warnbg);color:var(--warn)}.dif.d{background:var(--badbg);color:var(--bad)}
 .enun-r td{white-space:normal;background:var(--bg)}
 .enun{max-width:760px;padding:6px 4px}
@@ -275,6 +314,7 @@ details.fazer>summary{list-style:none;cursor:pointer;display:inline-flex}details
 </div>
 <main class="wrap" id="main"></main>
 <div class="dock hidden" id="dock"></div>
+<div id="sim" class="hidden" role="region" aria-label="Simulado"></div>
 <div class="modal hidden" id="modal" role="dialog" aria-modal="true" aria-label="Aviso"><div class="modal-card" id="modalCard"></div></div>
 <div class="toast hidden" id="toast" role="status"></div>
 <input type="file" id="bkFile" accept="application/json,.json" class="hidden">
@@ -340,6 +380,9 @@ function validarStore(o){
   if(o&&typeof o==="object"){
     if(EXAMS[o.exam]) st.exam=o.exam;
     if(o.view==="exam") st.view="exam";
+    const sm=o.sim; if(sm&&typeof sm==="object"&&EXAMS[sm.ex]&&Array.isArray(sm.areas)&&Number.isFinite(sm.fim)&&Number.isFinite(sm.dur)){
+      const ar=sm.areas.filter(a=>EXAMS[sm.ex].areas[a]); if(ar.length){ const cr=sm.cron||{}; st.sim={ex:sm.ex,areas:ar,fim:sm.fim,ini:Number(sm.ini)||sm.fim-sm.dur*1000,dur:sm.dur,auto:!!sm.auto,lado:sm.lado==="D"?"D":"E",modo:["div","pdf","cartao"].includes(sm.modo)?sm.modo:"div",cron:{est:["dig","rel","qua"].includes(cr.est)?cr.est:"dig",oc:!!cr.oc}}; }
+    }
     for(const id in EXAMS) st.estados[id]=validar(o.estados&&o.estados[id],EXAMS[id]);
   } else for(const id in EXAMS) st.estados[id]=novoEstado(EXAMS[id]);
   return st;
@@ -412,6 +455,27 @@ function analisar(a,st=S){
 }
 const fmt = (x,d=1)=>(x===null||x===undefined||Number.isNaN(x))?"–":x.toFixed(d).replace(".",",");
 function dificuldade(a,b){ const t=DATA.tert[a]; return b<=t[0]?["Fácil","f"]:b<=t[1]?["Média","m"]:["Difícil","d"]; }
+/* erros por faixa de dificuldade (tercis do parâmetro b desta prova); só questões válidas */
+const FAIXAS=[["f","Fácil"],["m","Média"],["d","Difícil"]];
+function quebraDif(a,r){
+  const q={f:{er:0,br:0,ac:0,tot:0},m:{er:0,br:0,ac:0,tot:0},d:{er:0,br:0,ac:0,tot:0}};
+  r.validas.forEach(j=>{ const x=q[dificuldade(a,r.itens[j][1])[1]], v=r.ans[j]; x.tot++;
+    if(r.ok[j]) x.ac++; else if(v===""||v==="-") x.br++; else x.er++; });
+  return q;
+}
+function somaQuebra(l){ const t={f:{er:0,br:0,ac:0,tot:0},m:{er:0,br:0,ac:0,tot:0},d:{er:0,br:0,ac:0,tot:0}};
+  l.forEach(q=>FAIXAS.forEach(([k])=>{ for(const c in t[k]) t[k][c]+=q[k][c]; })); return t; }
+function tilesDif(q){
+  const alerta=q.f.er>0;
+  return `<div class="dtier">${FAIXAS.map(([k,nome])=>{ const x=q[k], perd=x.er+x.br;
+    return `<div class="dt${k==="f"&&alerta?" alerta":""}"><h4><span class="dif ${k}" style="display:inline">${nome}s</span></h4><b>${x.er}</b> <span style="display:inline">${x.er===1?"erro":"erros"}</span><span>${x.br?x.br+" em branco · ":""}${x.ac} acerto${x.ac===1?"":"s"} de ${x.tot}${perd?"":" · nenhuma perdida"}</span></div>`; }).join("")}</div>`;
+}
+function leituraDif(q){
+  const f=q.f.er+q.f.br, m=q.m.er+q.m.br, d=q.d.er+q.d.br;
+  if(!f&&!m&&!d) return "Nenhuma questão perdida.";
+  if(f) return `Você perdeu <b>${f}</b> ${f===1?"questão fácil":"questões fáceis"}${q.f.er?` (${q.f.er} ${q.f.er===1?"erro":"erros"})`:""}. Na TRI, errar fácil e acertar difícil sinaliza chute e derruba a nota: é aqui que está o ganho mais barato.`;
+  return `Nenhuma fácil perdida. Suas perdas: ${m} ${m===1?"média":"médias"} e ${d} ${d===1?"difícil":"difíceis"}: o que falta é conteúdo, não distração.`;
+}
 const CACHE = {};
 function analisarC(a){
   const k=a+"|"+(S.cor[AREAS[a].dia]||"")+"|"+S.lang+"|"+S.env[a]+"|"+S.ans[a].join("");
@@ -425,7 +489,7 @@ const pct0=v=>v===null||v===undefined?"–":Math.round(v)+"%";
 function panDe(st=S){
   const por={}; let ac=0,er=0,br=0,tot=0,n=0;
   for(const a in AREAS){ const r=st===S?analisarC(a):analisar(a,st); if(!r||!r.pronto) continue;
-    por[a]={ac:r.acertos,er:r.erros,br:r.brancos,tot:r.validas.length}; ac+=r.acertos; er+=r.erros; br+=r.brancos; tot+=r.validas.length; n++; }
+    por[a]={ac:r.acertos,er:r.erros,br:r.brancos,tot:r.validas.length,dif:quebraDif(a,r)}; ac+=r.acertos; er+=r.erros; br+=r.brancos; tot+=r.validas.length; n++; }
   return {por,ac,er,br,tot,n,...taxasDe(ac,er,tot)};
 }
 function panTiles(ac,er,br,tot,rotulo){
@@ -448,6 +512,11 @@ function panoramaHtml(){
     const t=taxasDe(v.ac,v.er,v.tot);
     h+=`<tr><td><b>${nome}</b></td><td>${v.ac}</td><td>${v.er}</td><td>${v.br}</td><td>${pct0(t.marc)}</td><td>${pct0(t.prova)}</td><td class="bar">${stkBar(v.ac,v.er,v.br,v.tot)}</td></tr>`; }
   h+=`<tr><td><b>Total${pn.n<Object.keys(AREAS).length?" (áreas corrigidas)":""}</b></td><td><b>${pn.ac}</b></td><td><b>${pn.er}</b></td><td><b>${pn.br}</b></td><td><b>${pct0(pn.marc)}</b></td><td><b>${pct0(pn.prova)}</b></td><td class="bar">${stkBar(pn.ac,pn.er,pn.br,pn.tot)}</td></tr></tbody></table></div>
+    <h3 style="margin:18px 0 0;font-size:1rem">Onde você perdeu: por dificuldade</h3>
+    ${tilesDif(somaQuebra(Object.values(pn.por).map(v=>v.dif)))}
+    <p class="hint" style="margin:8px 0 0">${leituraDif(somaQuebra(Object.values(pn.por).map(v=>v.dif)))}</p>
+    <div class="tblw" style="margin-top:10px"><table class="pantbl" style="min-width:520px"><thead><tr><th>Área</th>${FAIXAS.map(([k,n])=>`<th><span class="dif ${k}">${n}s</span> erros</th>`).join("")}</tr></thead><tbody>${Object.keys(AREAS).filter(a=>pn.por[a]).map(a=>`<tr><td><b>${AREAS[a].nome}</b></td>${FAIXAS.map(([k])=>{ const x=pn.por[a].dif[k]; return `<td>${x.er}${x.br?` <span class="hint">+${x.br} em branco</span>`:""} <span class="hint">/ ${x.tot}</span></td>`; }).join("")}</tr>`).join("")}</tbody></table></div>
+    <p class="hint paninfo"><b>Dificuldade</b> é relativa a esta prova: o parâmetro b de cada questão dividido em três faixas (um terço mais fácil, um terço médio, um terço mais difícil). Erros e brancos aparecem separados.</p>
     <p class="hint paninfo"><b>% sobre o que marcou</b> = acertos ÷ (acertos + erros): mostra o quanto você acerta quando decide responder. <b>% sobre a prova</b> = acertos ÷ questões válidas (as anuladas ficam fora): é o seu aproveitamento real, contando os brancos como perdidos. Se a primeira é bem maior que a segunda, deixar em branco está custando pontos; se as duas são baixas, o ponto é conteúdo. Verde = acertos, vermelho = erros, cinza = em branco.</p>`;
   return h;
 }
@@ -529,7 +598,7 @@ function completarPan(){
 function abrirExame(id){
   setExam(id); const main=$("main");
   main.innerHTML=`<section class="panel"><div class="empty">Carregando ${EX.nome}…</div></section>`; $("dock").classList.add("hidden"); $("tabs").classList.add("hidden");
-  return carregarDados(id).then(()=>{ setExam(id); completarPan(); store.view="exam"; salvar(); renderAll(); window.scrollTo({top:0,behavior:"auto"}); }).catch(()=>{
+  return carregarDados(id).then(()=>{ setExam(id); completarPan(); store.view="exam"; salvar(); renderAll(); window.scrollTo({top:0,behavior:"auto"}); if(store.sim&&store.sim.ex===id) simMontar(); }).catch(()=>{
     main.innerHTML=`<section class="panel"><h2>Não consegui carregar ${EX.nome}</h2><p class="hint" style="margin:6px 0 12px">Os dados desta prova são baixados na primeira vez que você a abre. Verifique a conexão e tente de novo.</p><div class="row"><button class="btn pri" type="button" data-act="abrirExam" data-ex="${id}">Tentar de novo</button><button class="btn" type="button" data-act="hub">Voltar ao hub</button></div></section>`;
   });
 }
@@ -604,9 +673,21 @@ function avisoOrdem(){
   const dia=d=>Object.keys(AREAS).filter(x=>AREAS[x].dia===d).map(x=>nomes[x]).join(" + ");
   return `<div class="note info" style="margin-bottom:12px">Atenção à ordem desta prova: o <b>dia 1</b> foi ${dia(1)} e o <b>dia 2</b> foi ${dia(2)}. Nas edições mais recentes (2017 em diante) a ordem é outra (dia 1: Linguagens + Humanas).</div>`;
 }
+function sheetInner(a,r){
+  const idx=r.idx, base=AREAS[a].base; let h="";
+  idx.forEach((k,j)=>{
+    const it=DATA.items[a][k], fora=it[0]===null;
+    h+=`<div class="q${fora?" fora":""}" data-a="${a}" data-i="${j}" tabindex="${r.pronto?-1:0}" role="radiogroup" aria-label="Questão ${base+j}">${r.pronto?`<button type="button" class="n qn" data-act="enunq" data-a="${a}" data-j="${j}" title="Ver o enunciado da questão ${base+j}" aria-label="Ver o enunciado da questão ${base+j}">${base+j}</button>`:`<span class="n">${base+j}</span>`}<span class="bs">`;
+    LETRAS.forEach(l=>{ h+=`<button type="button" class="b" role="radio" aria-checked="false" data-v="${l}" aria-label="Questão ${base+j}, alternativa ${l}" tabindex="-1">${l}</button>`; });
+    h+=`<button type="button" class="b br" role="radio" aria-checked="false" data-v="-" title="Em branco" aria-label="Questão ${base+j}, em branco" tabindex="-1">–</button></span>`;
+    if(fora) h+=`<span class="tag" title="${it[5]===1?"Anulada pelo INEP (gabarito X)":"Excluída pelo INEP da calibração da nota"}: pode marcar para estudar, mas não entra na nota">${it[5]===1?"Anulada":"Não conta"}</span>`;
+    h+=`</div>`;
+  });
+  return h;
+}
 function renderAreaPane(a){
   const d=AREAS[a].dia, base=AREAS[a].base, main=$("main");
-  let h=diaSeg(d)+avisoOrdem()+avisoArea(a)+selRow(d);
+  let h=`<div class="row" style="margin-bottom:10px"><button class="btn sm" type="button" data-act="simSetup" data-ex="${EX.id}">⏱ Simulado com cronômetro e PDF</button></div>`+diaSeg(d)+avisoOrdem()+avisoArea(a)+selRow(d);
   if(!diaLiberado(d)){
     h+=`<section class="panel"><div class="trava">🔒 ${!S.cor[d]?"Escolha a cor do caderno acima para liberar o cartão.":"Escolha o idioma (inglês ou espanhol) acima para liberar o cartão."}</div></section>`;
     main.innerHTML=h; return;
@@ -619,14 +700,7 @@ function renderAreaPane(a){
   if(r.pronto) h+=`<div class="row"><button class="btn sm" type="button" data-act="editar" data-a="${a}">Editar respostas</button><span class="hint">As marcações ficam salvas: depois de editar, corrija de novo.</span></div>`;
   else h+=`<div class="row"><button class="btn sm" type="button" data-act="start" data-a="${a}">Digitar pelo teclado</button><button class="btn sm danger" type="button" data-act="clr" data-a="${a}">Limpar área</button></div>`;
   h+=`<div class="sheet ${r.pronto?"lock":""}" id="sheet-${a}" role="group" aria-label="Cartão-resposta ${AREAS[a].nome}">`;
-  idx.forEach((k,j)=>{
-    const it=DATA.items[a][k], fora=it[0]===null;
-    h+=`<div class="q${fora?" fora":""}" data-a="${a}" data-i="${j}" tabindex="${r.pronto?-1:0}" role="radiogroup" aria-label="Questão ${base+j}"><span class="n">${base+j}</span><span class="bs">`;
-    LETRAS.forEach(l=>{ h+=`<button type="button" class="b" role="radio" aria-checked="false" data-v="${l}" aria-label="Questão ${base+j}, alternativa ${l}" tabindex="-1">${l}</button>`; });
-    h+=`<button type="button" class="b br" role="radio" aria-checked="false" data-v="-" title="Em branco" aria-label="Questão ${base+j}, em branco" tabindex="-1">–</button></span>`;
-    if(fora) h+=`<span class="tag" title="${it[5]===1?"Anulada pelo INEP (gabarito X)":"Excluída pelo INEP da calibração da nota"}: pode marcar para estudar, mas não entra na nota">${it[5]===1?"Anulada":"Não conta"}</span>`;
-    h+=`</div>`;
-  });
+  h+=sheetInner(a,r);
   h+=`</div>`;
   if(!r.pronto){
     const ar=Object.keys(AREAS).filter(x=>AREAS[x].dia===d), ok2=ar.length===2&&ar.every(x=>caderno(x));
@@ -696,6 +770,7 @@ function renderSum(a,r){
     <div class="stat"><b>${r.brancos}</b><span>em branco${r.semMarca?` (${r.semMarca} sem marcação)`:""}</span></div>
     <div class="stat"><b>${pct0(tx.marc)}</b><span>de acerto sobre o que marcou (${r.acertos} de ${r.acertos+r.erros})</span></div>
     <div class="stat"><b>${pct0(tx.prova)}</b><span>de acerto sobre a prova toda (${r.acertos} de ${r.validas.length})</span></div></div>`;
+  if(!r.todosBrancos){ const qd=quebraDif(a,r); h+=`<h3 style="margin:14px 0 0;font-size:1rem">Erros por dificuldade</h3>${tilesDif(qd)}<p class="hint" style="margin:8px 0 0">${leituraDif(qd)}</p>`; }
   if(r.todosBrancos) h+=`<div class="note" style="margin-top:10px">Nenhuma questão respondida: não calculo nota para cartão totalmente em branco (o tratamento desse caso varia de um ano para outro no INEP).</div>`;
   if(nFora) h+=`<p class="hint" style="margin:10px 0 0">Fora da nota: ${r.itens.map((it,j)=>it[0]===null?`<b>${AREAS[a].base+j}</b> (${it[5]===1?"anulada, gabarito X":"excluída da calibração"})`:null).filter(Boolean).join(", ")}. Dá para marcar para estudar; não altera a nota.${(()=>{const v=Object.values(r.info).filter(x=>x!==null);return v.length?` Nelas você acertou ${v.filter(Boolean).length} de ${v.length} marcadas.`:"";})()}</p>`;
   box.innerHTML=h;
@@ -737,9 +812,136 @@ function renderDet(a,r){
   box.innerHTML=h;
 }
 
+
+/* ---------- simulado: PDF do INEP + cartão lado a lado + cronômetro ---------- */
+const SIM_DIA_MIN=330, SIM_AREA_MIN=165; /* 5h30 para o dia; 165 min = 45 questões a 3min40s */
+let SIMCFG=null, SIMTK=null;
+const AREA_CURTO={LC:"Linguagens",CH:"Humanas",CN:"Natureza",MT:"Matemática"};
+function simAreasDe(esc){ return esc[0]==="d"?Object.keys(AREAS).filter(a=>AREAS[a].dia===+esc.slice(1)):[esc.slice(2)]; }
+function simDiaDe(esc){ return esc[0]==="d"?+esc.slice(1):AREAS[esc.slice(2)].dia; }
+function simMinPadrao(esc){ return esc[0]==="d"?SIM_DIA_MIN:SIM_AREA_MIN; }
+function simUrl(d){ const L=(EX.info.links||{})[d]; return L&&S.cor[d]?L[S.cor[d]]||null:null; }
+function fmtDur(sg){ sg=Math.max(0,Math.floor(sg)); const h=Math.floor(sg/3600), m=Math.floor(sg%3600/60), x=sg%60, d=n=>String(n).padStart(2,"0"); return `${d(h)}:${d(m)}:${d(x)}`; }
+function fmtMin(m){ return Math.floor(m/60)+"h"+(m%60?String(m%60).padStart(2,"0"):""); }
+function abrirSetup(){
+  if(!EX.dados) return;
+  const dias=[...new Set(Object.keys(AREAS).map(a=>AREAS[a].dia))].sort();
+  if(!SIMCFG||SIMCFG.ex!==EX.id){ const esc="d"+dias[0]; SIMCFG={ex:EX.id,esc,min:simMinPadrao(esc),edit:false,auto:true}; }
+  renderSetup();
+}
+function renderSetup(){
+  const c=SIMCFG, d=simDiaDe(c.esc), ar=simAreasDe(c.esc), tl=ar.some(a=>AREAS[a].lang);
+  const dias=[...new Set(Object.keys(AREAS).map(a=>AREAS[a].dia))].sort();
+  const opt=(v,t,sub)=>`<button type="button" class="chip" aria-pressed="${c.esc===v}" data-act="simEsc" data-v="${v}">${t}<small>${sub}</small></button>`;
+  let h=`<h3>Simulado ${EX.nome}</h3><p class="hint" style="margin:4px 0 12px">O caderno oficial do INEP abre ao lado do seu cartão-resposta. O tempo corre mesmo se você recarregar a página, como na prova.</p>
+    <span class="lbl">O que você vai fazer</span><div class="simopt" style="margin:6px 0 14px">${dias.map(x=>{ const aa=Object.keys(AREAS).filter(k=>AREAS[k].dia===x); return opt("d"+x,`Dia ${x} inteiro`,aa.map(k=>AREA_CURTO[k]).join(" + ")+" · "+aa.length*45+" questões"); }).join("")}${Object.keys(AREAS).map(a=>opt("a:"+a,"Só "+AREA_CURTO[a],"45 questões · dia "+AREAS[a].dia)).join("")}</div>
+    <span class="lbl">Caderno do dia ${d} (cor da capa)</span><div class="row" style="margin:6px 0 14px">${(CORES[d]||[]).map(k=>`<button type="button" class="chip" aria-pressed="${S.cor[d]===k}" data-act="simCor" data-d="${d}" data-c="${k}"><span class="dot" style="background:${COR_HEX[k]}"></span>${COR_NOME[k]}</button>`).join("")}</div>`;
+  if(tl) h+=`<span class="lbl">Idioma da prova</span><div class="row" style="margin:6px 0 14px">${EX.langs.map((t,v)=>`<button type="button" class="chip" aria-pressed="${S.lang===v}" data-act="simLang" data-l="${v}">${t}</button>`).join("")}</div>`;
+  h+=`<span class="lbl">Tempo (minutos)</span><div class="row" style="margin:6px 0 4px"><input id="simMin" type="number" min="5" max="600" step="5" value="${c.min}" style="width:96px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit" aria-label="Tempo em minutos"><span class="hint" id="simMinTxt">${fmtMin(c.min)} · padrão ${fmtMin(simMinPadrao(c.esc))}${c.esc[0]==="d"?" (dia da prova)":" (45 questões a 3min40s)"}</span></div>
+    <label class="hint" style="display:flex;gap:8px;align-items:center;margin:10px 0 0"><input type="checkbox" id="simAuto" ${c.auto?"checked":""}> Ao zerar o tempo, travar o cartão e corrigir sozinho</label>`;
+  const falta=[]; if(!S.cor[d]) falta.push("a cor do caderno"); if(tl&&S.lang===null) falta.push("o idioma");
+  if(falta.length) h+=`<div class="note" style="margin-top:12px">Escolha ${falta.join(" e ")} para começar.</div>`;
+  else if(!simUrl(d)) h+=`<div class="note" style="margin-top:12px">Não tenho o link do PDF deste caderno. O simulado funciona só com o cartão; abra o caderno no <a href="${LINK_INEP}" target="_blank" rel="noopener">site do INEP</a>.</div>`;
+  h+=`<div class="modal-act"><button class="btn" type="button" data-act="fechar">Cancelar</button><button class="btn pri" type="button" data-act="simGo" ${falta.length?"disabled":""}>Começar agora</button></div>`;
+  abrirModal(h); $("modalCard").classList.add("wide");
+}
+function simIniciar(){
+  const c=SIMCFG, ar=simAreasDe(c.esc), min=Math.max(5,Math.min(600,Math.round(+c.min)||simMinPadrao(c.esc)));
+  const sujo=ar.filter(a=>S.ans[a].some(x=>x!=="")||S.env[a]);
+  if(sujo.length&&!confirm("Já existem marcações em "+sujo.map(a=>AREA_CURTO[a]).join(" e ")+". Um simulado novo apaga essas marcações (o histórico salvo não é afetado). Continuar?")) return;
+  ar.forEach(a=>{ S.ans[a]=Array(45).fill(""); S.env[a]=false; });
+  const agora=Date.now(); S.tab=ar[0];
+  store.sim={ex:EX.id,areas:ar,ini:agora,fim:agora+min*60000,dur:min*60,auto:!!c.auto,lado:"E",modo:innerWidth<800?"cartao":"div",cron:{est:"dig",oc:false}};
+  fecharModal(); salvar(); simMontar();
+}
+function simMontar(){
+  const sm=store.sim; if(!sm||sm.ex!==EX.id||!EX.dados) return;
+  if(sm.fim<=Date.now()&&sm.auto){ simFinalizar(true); return; }
+  $("main").innerHTML=""; $("dock").classList.add("hidden"); $("tabs").classList.add("hidden");
+  const el=$("sim"); el.classList.remove("hidden"); document.body.style.overflow="hidden";
+  simRender(); clearInterval(SIMTK); SIMTK=setInterval(simTick,1000); simTick();
+}
+function simRender(){
+  const sm=store.sim, el=$("sim"), d=AREAS[sm.areas[0]].dia, url=simUrl(d), estreito=innerWidth<800;
+  let modo=sm.modo; if(estreito&&modo==="div") modo="cartao"; if(!url&&modo!=="cartao") modo="cartao";
+  el.className="m-"+modo;
+  const nomes=sm.areas.map(a=>AREA_CURTO[a]).join(" + ");
+  const segs=[...(estreito?[]:[["div","Dividido"]]),["pdf","Prova"],["cartao","Cartão"]];
+  const cr=sm.cron||(sm.cron={est:"dig",oc:false});
+  let h=`<div class="sim-h"><div class="ttl">${EX.nome} · ${nomes}<small>Caderno ${COR_NOME[S.cor[d]]}${sm.areas.some(a=>AREAS[a].lang)?" · "+EX.langs[S.lang]:""} · <span id="sim-prog"></span></small></div>
+    <div id="sim-cron" role="timer" aria-live="off"></div><button class="btn ic sm" type="button" data-act="simCronEst" title="Trocar o estilo do cronômetro" aria-label="Trocar o estilo do cronômetro">⟳</button><button class="btn sm" type="button" data-act="simCronOc" aria-pressed="${!!cr.oc}">${cr.oc?"Mostrar tempo":"Ocultar tempo"}</button><span class="sp"></span>
+    <div class="seg" role="group" aria-label="Visualização">${segs.map(([k,t])=>`<button type="button" aria-pressed="${modo===k}" data-act="simModo" data-m="${k}">${t}</button>`).join("")}</div>
+    ${modo==="div"?`<button class="btn sm" type="button" data-act="simLado" title="Trocar de lado">⇄ Trocar lados</button>`:""}
+    ${url?`<a class="btn sm" href="${url}" target="_blank" rel="noopener">Abrir PDF em outra aba</a>`:""}
+    <button class="btn pri sm" type="button" data-act="simEnd">Encerrar e corrigir</button></div>
+    ${cr.est==="qua"&&!cr.oc?`<div class="sim-quadro" id="sim-quadro"></div>`:""}
+    <div class="sim-b${sm.lado==="D"?" inv":""}"><div class="sim-pdf">${url?`<iframe src="${url}#view=FitH" title="Caderno de questões ${EX.nome}"></iframe>`:`<div class="semlink hint">Sem link do PDF para este caderno. Abra o caderno no <a href="${LINK_INEP}" target="_blank" rel="noopener">site do INEP</a> e use só o cartão aqui.</div>`}</div><div class="sim-card">`;
+  sm.areas.forEach(a=>{ const r=analisarC(a);
+    h+=`<section class="panel area" id="area-${a}"><div class="area-h"><div><h2>${AREAS[a].nome}<small id="prog-${a}"></small></h2></div></div><div class="sheet" id="sheet-${a}" role="group" aria-label="Cartão-resposta ${AREAS[a].nome}">${sheetInner(a,r)}</div></section>`; });
+  el.innerHTML=h+`</div></div>`;
+  sm.areas.forEach(a=>pintar(a,true)); simProg();
+}
+function simProg(){
+  const sm=store.sim; if(!sm) return; let f=0,t=0; sm.areas.forEach(a=>{ const r=analisarC(a); f+=r.feitas; t+=r.validas.length; });
+  const e=$("sim-prog"); if(e) e.textContent=`${f}/${t} marcadas`;
+}
+const hm=ts=>new Date(ts).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+function simMarcos(sm){
+  const m=[{t:sm.ini,r:"Início"}], B=5400000, A=900000;
+  for(let k=1;sm.ini+k*B<sm.fim-A-300000;k++) m.push({t:sm.ini+k*B,r:fmtMin(k*90)+" de prova"});
+  if(sm.fim-A>sm.ini+300000) m.push({t:sm.fim-A,r:"faltam 15 min",al:1});
+  m.push({t:sm.fim,r:"Fim"}); return m;
+}
+function relogioSvg(now,sm){
+  const d=new Date(now), mi=d.getMinutes()+d.getSeconds()/60, h=(d.getHours()%12)+mi/60, C=2*Math.PI*29;
+  const pt=(g,l)=>[(32+l*Math.sin(g*Math.PI/180)).toFixed(1),(32-l*Math.cos(g*Math.PI/180)).toFixed(1)];
+  const [hx,hy]=pt(h*30,15),[mx,my]=pt(mi*6,22),[sx,sy]=pt(d.getSeconds()*6,25);
+  const resta=Math.min(1,Math.max(0,(sm.fim-now)/(sm.fim-sm.ini))), cor=sm.fim-now<=300000?"var(--bad)":sm.fim-now<=1800000?"var(--warn)":"var(--green)";
+  let tk=""; for(let i=0;i<12;i++){ const [x1,y1]=pt(i*30,26),[x2,y2]=pt(i*30,i%3?28:24.5); tk+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--muted)" stroke-width="${i%3?1:1.6}"/>`; }
+  return `<svg viewBox="0 0 64 64" width="60" height="60" aria-hidden="true"><circle cx="32" cy="32" r="31" fill="var(--card)"/><circle cx="32" cy="32" r="29" fill="none" stroke="var(--line)" stroke-width="3"/><circle cx="32" cy="32" r="29" fill="none" stroke="${cor}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${(C*resta).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 32 32)"/>${tk}<line x1="32" y1="32" x2="${hx}" y2="${hy}" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round"/><line x1="32" y1="32" x2="${mx}" y2="${my}" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round"/><line x1="32" y1="32" x2="${sx}" y2="${sy}" stroke="var(--bad)" stroke-width="1"/><circle cx="32" cy="32" r="2" fill="var(--ink)"/></svg>`;
+}
+function simTick(){
+  const sm=store.sim, box=$("sim-cron"); if(!sm||!box) return;
+  const now=Date.now(), rest=Math.round((sm.fim-now)/1000);
+  if(rest<=0&&sm.auto){ simFinalizar(true); return; }
+  const cr=sm.cron||{est:"dig",oc:false}, cl=rest<=300?" bad":rest<=1800?" warn":"";
+  const txt=rest>=0?fmtDur(rest):"+"+fmtDur(-rest);
+  box.title=rest<0?"Tempo esgotado: você está no excedente":"Tempo restante";
+  if(cr.oc) box.innerHTML="";
+  else if(cr.est==="rel") box.innerHTML=`<div style="display:flex;align-items:center;gap:10px">${relogioSvg(now,sm)}<div style="line-height:1.25"><div class="sim-t${cl}" style="font-size:1.1rem;padding:3px 8px">${txt}</div><small class="hint" style="display:block;margin-top:2px">termina às ${hm(sm.fim)}</small></div></div>`;
+  else box.innerHTML=`<span class="sim-t${cl}">${txt}</span>`;
+  const q=$("sim-quadro");
+  if(q){ const ms=simMarcos(sm), prox=ms.findIndex(x=>x.t>now);
+    q.innerHTML=ms.map((x,i)=>`<span class="mq${x.t<=now?" pas":""}${x.al?" al":""}${i===prox?" at":""}"><b>${hm(x.t)}</b> ${x.r}</span>`).join(""); }
+}
+function simFinalizar(auto){
+  const sm=store.sim; if(!sm) return; clearInterval(SIMTK); SIMTK=null;
+  const usado=Math.max(0,Math.min(Math.round((Date.now()-sm.ini)/1000),auto?sm.dur:Infinity));
+  sm.areas.forEach(a=>{ S.env[a]=true; });
+  const ar=sm.areas; store.sim=null; S.tab=ar[0]; salvar();
+  $("sim").classList.add("hidden"); $("sim").innerHTML=""; document.body.style.overflow=""; fecharModal();
+  renderAll(); window.scrollTo({top:0,behavior:"auto"});
+  let ac=0,er=0,br=0,tot=0; const notas=ar.map(a=>{ const r=analisarC(a); ac+=r.acertos; er+=r.erros; br+=r.brancos; tot+=r.validas.length; return `<div class="stat"><b>${r.nota!==null?fmt(r.nota):r.acertos+"/"+r.validas.length}</b><span>${AREAS[a].nome}</span></div>`; }).join("");
+  abrirModal(`<h3>${auto?"Tempo esgotado: simulado corrigido":"Simulado corrigido"}</h3><p class="hint" style="margin:4px 0 10px">Tempo usado: <b>${fmtDur(usado)}</b></p><div class="stats pan">${notas}</div><div style="margin-top:12px">${panTiles(ac,er,br,tot)}</div>
+    <div class="modal-act"><button class="btn pri" type="button" data-act="fechar">Ver minha correção</button><button class="btn" type="button" data-act="tab" data-t="RES">Ver panorama por dificuldade</button></div>`);
+}
+function simPerguntarFim(){
+  const sm=store.sim; let f=0,t=0; sm.areas.forEach(a=>{ const r=analisarC(a); f+=r.feitas; t+=r.validas.length; });
+  const rest=Math.round((sm.fim-Date.now())/1000);
+  abrirModal(`<h3>Encerrar e corrigir?</h3><p>Você marcou <b>${f} de ${t}</b> questões.${t-f?` As <b>${t-f}</b> sem marcação contam como em branco.`:""} ${rest>0?`Ainda restam <b>${fmtDur(rest)}</b>.`:""}</p><p class="hint">Depois de corrigir, o gabarito aparece e o cronômetro para.</p>
+    <div class="modal-act"><button class="btn" type="button" data-act="fechar">Voltar à prova</button><button class="btn pri" type="button" data-act="simEndGo">Corrigir agora</button></div>`);
+}
+
 /* ---------- confirmar e corrigir ---------- */
 function abrirModal(html){ $("modalCard").innerHTML=html; $("modal").classList.remove("hidden"); const b=$("modalCard").querySelector("button.pri,button"); if(b) b.focus(); }
-function fecharModal(){ $("modal").classList.add("hidden"); $("modalCard").innerHTML=""; }
+function fecharModal(){ $("modal").classList.add("hidden"); $("modalCard").innerHTML=""; $("modalCard").classList.remove("wide"); }
+function abrirEnun(a,j){
+  const r=analisarC(a), it=r.itens[j], pos=AREAS[a].base+j, v=S.ans[a][j], cor=S.cor[AREAS[a].dia], fora=it[0]===null;
+  const res=fora?"":(r.ok[j]?'<span class="pos">Acertou</span>':'<span class="neg">Errou</span>'), dd=fora?null:dificuldade(a,it[1]);
+  abrirModal(`<h3>Questão ${pos}</h3><div class="enun-top">${res}${dd?`<span class="dif ${dd[1]}">${dd[0]}</span>`:""}<span class="hint">Você: <b>${v==="-"?"em branco":(v||"sem marcação")}</b> · Gabarito: <b>${LETRAS.includes(it[4])?it[4]:"X (anulada)"}</b></span></div>${enunHtml(a,j,r)}
+    <div class="modal-act"><button class="btn pri" type="button" data-act="fechar">Fechar</button><a class="btn" href="${linkRes(a,pos,cor,r.idx[j])}" target="_blank" rel="noopener">Pesquisar resolução</a></div>`);
+  $("modalCard").classList.add("wide");
+}
 function perguntarCorrigir(a){
   const r=analisarC(a), n=r.validas.length, sem=n-r.feitas;
   abrirModal(`<h3>Corrigir ${AREAS[a].nome}?</h3>
@@ -1031,7 +1233,7 @@ function renderLobby(){
     const nh=st?st.hist.length:0;
     h+=`<section class="panel pcard"><div class="row" style="justify-content:space-between"><h3 style="margin:0;font-size:1.25rem">ENEM ${m.ano}</h3>${selo(m)}</div>
       ${m.ordem_moderna?"":`<p class="hint" style="margin:6px 0 0">Dia 1: ${Object.keys(m.areas).filter(a=>m.areas[a].dia===1).map(a=>({LC:"Linguagens",CH:"Humanas",CN:"Natureza",MT:"Matemática"})[a]).join(" + ")} (ordem diferente das edições recentes)</p>`}
-      <div class="row" style="margin-top:12px"><button class="btn pri" type="button" data-act="abrirExam" data-ex="${id}">${draft?"Continuar o simulado":"Corrigir meu simulado"}</button></div>
+      <div class="row" style="margin-top:12px"><button class="btn pri" type="button" data-act="abrirExam" data-ex="${id}">${draft?"Continuar o simulado":"Corrigir meu simulado"}</button><button class="btn" type="button" data-act="simSetup" data-ex="${id}">⏱ Simulado com cronômetro</button></div>
       <details class="fazer"><summary class="btn sm" style="margin-top:8px">Fazer a prova (PDF do INEP)</summary>${linksProva(m)}<p class="hint" style="margin:8px 0 0">Abre o caderno oficial em outra aba. Faça a prova no papel e depois corrija aqui, escolhendo a mesma cor do caderno.</p></details>
       ${ret.ids.has(id)?"":andamento(m,st)}
       ${nh?`<p class="hint" style="margin:8px 0 0">${nh} simulado${nh>1?"s":""} salvo${nh>1?"s":""}</p>`:""}</section>`;
@@ -1047,7 +1249,7 @@ function toast(msg,acao){
   const b=$("toastAct"); if(b) b.onclick=()=>{ baixarBackup(); t.classList.add("hidden"); };
   clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.add("hidden"),4500);
 }
-function marcar(a,j,v){ if(S.env[a]) return; S.ans[a][j]=v; salvar(); pintar(a); }
+function marcar(a,j,v){ if(S.env[a]) return; S.ans[a][j]=v; salvar(); pintar(a); if(store.sim) simProg(); }
 function focarQ(a,j){ const q=document.querySelector(`#area-${a} .q[data-i="${j}"]`); if(q){ q.focus({preventScroll:true}); q.scrollIntoView({block:"nearest"}); } }
 function avancar(a,j){
   if(j<44){ focarQ(a,j+1); return; }
@@ -1073,6 +1275,18 @@ document.addEventListener("click",e=>{
     case "clr": if(confirm("Limpar todas as marcações de "+AREAS[a].nome+"?")){ S.ans[a]=Array(45).fill(""); S.env[a]=false; salvar(); renderPane(); } break;
     case "paste": colar(a); break;
     case "pasteDia": colarDia(t.dataset.m); break;
+    case "enunq": abrirEnun(a,+t.dataset.j); break;
+    case "simSetup": { const id=t.dataset.ex; if(store.sim&&store.sim.ex===id&&EX.dados&&store.exam===id){ simMontar(); break; } abrirExame(id).then(()=>{ if(!store.sim) abrirSetup(); }); break; }
+    case "simEsc": { SIMCFG.esc=t.dataset.v; if(!SIMCFG.edit) SIMCFG.min=simMinPadrao(SIMCFG.esc); renderSetup(); break; }
+    case "simCor": S.cor[+t.dataset.d]=t.dataset.c; salvar(); renderSetup(); break;
+    case "simLang": S.lang=+t.dataset.l; salvar(); renderSetup(); break;
+    case "simGo": simIniciar(); break;
+    case "simModo": { store.sim.modo=t.dataset.m; salvar(); simRender(); simTick(); break; }
+    case "simLado": { store.sim.lado=store.sim.lado==="D"?"E":"D"; salvar(); simRender(); simTick(); break; }
+    case "simCronEst": { const c=store.sim.cron, o=["dig","rel","qua"]; c.est=o[(o.indexOf(c.est)+1)%3]; c.oc=false; salvar(); simRender(); simTick(); break; }
+    case "simCronOc": { store.sim.cron.oc=!store.sim.cron.oc; salvar(); simRender(); simTick(); break; }
+    case "simEnd": simPerguntarFim(); break;
+    case "simEndGo": simFinalizar(false); break;
     case "enun": {
       const tr=t.closest("tr"), nx=tr.nextElementSibling;
       if(nx&&nx.classList.contains("enun-r")){ nx.remove(); t.textContent="Ver"; }
@@ -1091,7 +1305,11 @@ document.addEventListener("click",e=>{
     case "limparTudo": if(confirm("Apagar TODO o preenchimento e o histórico deste navegador? Baixe o backup antes se quiser guardar.")){ store=validarStore(null); setExam(store.exam); try{localStorage.removeItem(KEY);}catch(_){} renderAll(); toast("Tudo limpo."); } break;
   }
 });
+document.addEventListener("input",e=>{
+  if(e.target.id==="simMin"&&SIMCFG){ SIMCFG.min=Math.max(5,Math.min(600,Math.round(+e.target.value)||5)); SIMCFG.edit=true; const x=$("simMinTxt"); if(x) x.textContent=fmtMin(SIMCFG.min)+" · padrão "+fmtMin(simMinPadrao(SIMCFG.esc)); }
+});
 document.addEventListener("change",e=>{
+  if(e.target.id==="simAuto"&&SIMCFG){ SIMCFG.auto=e.target.checked; return; }
   const t=e.target; if(!t.dataset||!t.dataset.act) return;
   if(t.dataset.act==="escopo"){ DASH_ESC=t.value; renderLobby(); initCharts(); return; }
   if(t.dataset.act==="soerros"){ document.querySelectorAll(`#tb-${t.dataset.a} tbody tr`).forEach(tr=>tr.classList.toggle("hidden",t.checked&&tr.dataset.er!=="1"&&!tr.classList.contains("enun-r"))); }
@@ -1099,7 +1317,7 @@ document.addEventListener("change",e=>{
 });
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"&&!$("modal").classList.contains("hidden")){ fecharModal(); return; }
-  const q=e.target.closest&&e.target.closest(".q"); if(!q) return;
+  const q=e.target.closest&&e.target.closest(".q"); if(!q||e.target.closest(".qn")) return;
   if(e.ctrlKey||e.metaKey||e.altKey) return;
   const a=q.dataset.a, j=+q.dataset.i, k=e.key, L=k.length===1?k.toUpperCase():"";
   if(LETRAS.includes(L)){ e.preventDefault(); marcar(a,j,L); avancar(a,j); return; }
@@ -1167,6 +1385,7 @@ function aplicaTema(t){ document.documentElement.setAttribute("data-theme",t); }
   $("tema").onclick=()=>{ t=t==="dark"?"light":"dark"; aplicaTema(t); try{localStorage.setItem(KEY_TEMA,t);}catch(_){} };
 })();
 
+addEventListener("resize",()=>{ if(store.sim&&!$("sim").classList.contains("hidden")){ clearTimeout(simMontar.rz); simMontar.rz=setTimeout(()=>{ simRender(); simTick(); },200); } });
 carregar();
 if(store.view==="exam") abrirExame(store.exam); else renderAll();
 if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(()=>{});
