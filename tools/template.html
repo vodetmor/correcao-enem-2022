@@ -188,7 +188,7 @@ tr.fora td{color:var(--muted)}
 .sim-b{flex:1;min-height:0;display:flex}
 .sim-b.inv{flex-direction:row-reverse}
 .sim-pdf,.sim-card{min-width:0;height:100%}
-.sim-pdf{flex:0 0 calc(50% - 5px);background:var(--soft);display:flex;flex-direction:column}
+.sim-pdf{flex:0 0 calc(78% - 5px);background:var(--soft);display:flex;flex-direction:column}
 .sim-pdf iframe{flex:1;width:100%;border:0;background:#fff}
 .sim-pdf .semlink{padding:20px}
 .sim-card{flex:1 1 0;overflow:auto;padding:12px 14px 40px}
@@ -401,7 +401,7 @@ function validarStore(o){
     if(EXAMS[o.exam]) st.exam=o.exam;
     if(o.view==="exam") st.view="exam";
     const sm=o.sim; if(sm&&typeof sm==="object"&&EXAMS[sm.ex]&&Array.isArray(sm.areas)&&Number.isFinite(sm.fim)&&Number.isFinite(sm.dur)){
-      const ar=sm.areas.filter(a=>EXAMS[sm.ex].areas[a]); if(ar.length){ const cr=sm.cron||{}; st.sim={ex:sm.ex,areas:ar,fim:sm.fim,ini:Number(sm.ini)||sm.fim-sm.dur*1000,dur:sm.dur,auto:!!sm.auto,lado:sm.lado==="D"?"D":"E",modo:["div","pdf","cartao"].includes(sm.modo)?sm.modo:"div",cron:{est:["dig","rel","qua"].includes(cr.est)?cr.est:"dig",oc:!!cr.oc},pct:Math.max(20,Math.min(80,Number(sm.pct)||50)),z:Math.max(.6,Math.min(1.6,Number(sm.z)||1))}; }
+      const ar=sm.areas.filter(a=>EXAMS[sm.ex].areas[a]); if(ar.length){ const cr=sm.cron||{}; st.sim={ex:sm.ex,areas:ar,fim:sm.fim,ini:Number(sm.ini)||sm.fim-sm.dur*1000,dur:sm.dur,auto:!!sm.auto,lado:sm.lado==="D"?"D":"E",modo:["div","pdf","cartao"].includes(sm.modo)?sm.modo:"div",cron:{est:["dig","rel","qua"].includes(cr.est)?cr.est:"dig",oc:!!cr.oc},pct:Math.max(20,Math.min(80,Number(sm.pct)||78)),z:Math.max(.6,Math.min(1.6,Number(sm.z)||1))}; }
     }
     for(const id in EXAMS) st.estados[id]=validar(o.estados&&o.estados[id],EXAMS[id]);
   } else for(const id in EXAMS) st.estados[id]=novoEstado(EXAMS[id]);
@@ -889,7 +889,7 @@ function simIniciar(){
   if(simRascunho()&&!jaSalvo()) salvarHist(nomeProximo()+" (antes do cronometrado)",true);
   for(const a in AREAS){ S.ans[a]=Array(45).fill(""); S.env[a]=false; } S.red=[null,null,null,null,null];
   const agora=Date.now(); S.tab=ar[0];
-  store.sim={ex:EX.id,areas:ar,ini:agora,fim:agora+min*60000,dur:min*60,auto:!!c.auto,lado:"E",modo:innerWidth<800?"cartao":"div",cron:{est:"dig",oc:false},pct:50,z:1};
+  store.sim={ex:EX.id,areas:ar,ini:agora,fim:agora+min*60000,dur:min*60,auto:!!c.auto,lado:"E",modo:innerWidth<800?"cartao":"div",cron:{est:"dig",oc:false},pct:78,z:1};
   fecharModal(); salvar(); simMontar();
   try{ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); }catch(_){}
 }
@@ -928,7 +928,7 @@ function simAplicarModo(){
   $("sim").className="m-"+modo;
   document.querySelectorAll("#simSeg [data-m]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===modo)));
   $("simB").classList.toggle("inv",sm.lado==="D");
-  $("simPdf").style.flex=`0 0 calc(${sm.pct||50}% - 5px)`;
+  $("simPdf").style.flex=`0 0 calc(${sm.pct||78}% - 5px)`;
   $("simZoom").style.zoom=sm.z||1;
 }
 function simDescartar(){
@@ -1492,7 +1492,7 @@ document.addEventListener("pointerdown",e=>{
 document.addEventListener("keydown",e=>{
   if(!store.sim||!e.target.closest||!e.target.closest("#simDiv")) return;
   if(e.key!=="ArrowLeft"&&e.key!=="ArrowRight") return; e.preventDefault();
-  const sm=store.sim, dir=(e.key==="ArrowRight"?1:-1)*(sm.lado==="D"?-1:1); sm.pct=Math.max(20,Math.min(80,(sm.pct||50)+5*dir)); salvar(); simAplicarModo();
+  const sm=store.sim, dir=(e.key==="ArrowRight"?1:-1)*(sm.lado==="D"?-1:1); sm.pct=Math.max(20,Math.min(80,(sm.pct||78)+5*dir)); salvar(); simAplicarModo();
 });
 document.addEventListener("fullscreenchange",()=>{ const b=$("simFs"); if(b) b.textContent=document.fullscreenElement?"Sair da tela cheia":"Tela cheia"; });
 addEventListener("resize",()=>{ if(store.sim&&!$("sim").classList.contains("hidden")){ clearTimeout(simMontar.rz); simMontar.rz=setTimeout(()=>{ simRender(); simTick(); },200); } });
