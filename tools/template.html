@@ -48,7 +48,7 @@ a{color:var(--blue)}
 .tab.ok b{color:var(--green)}
 .tab[aria-selected=true]{border-color:var(--green);box-shadow:inset 0 -3px 0 var(--green)}
 .tab:hover{border-color:var(--green)}
-.bar-act{display:flex;gap:6px;flex:none}
+.bar-act{display:flex;gap:6px;flex:none;margin-left:auto}
 .btn{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:9px 18px;font:inherit;font-weight:600;cursor:pointer;min-height:42px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 .btn:hover:not(:disabled){border-color:var(--green)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
@@ -171,6 +171,14 @@ tr.fora td{color:var(--muted)}
 .enun li.gab{border-color:var(--ok);background:var(--okbg)}
 .enun li.voce{border-color:var(--bad);background:var(--badbg)}
 
+.provas{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));align-items:start}
+.pcard{margin:0}
+.selo{font-size:.78rem;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--greenbg);color:var(--green);white-space:nowrap}
+.selo.es{background:var(--warnbg);color:var(--warn)}.selo.no{background:var(--badbg);color:var(--bad)}
+details.fazer>summary{list-style:none;cursor:pointer;display:inline-flex}details.fazer>summary::-webkit-details-marker{display:none}
+.andamento{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--bluebg);font-size:.9rem}
+.chipn{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.chipn b{color:var(--ink)}.chipn.ok{border-color:var(--green)}.chipn.ok b{color:var(--green)}
 /* seletor de dia */
 .seg{display:flex;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:4px;gap:4px;margin-bottom:16px}
 .seg button{flex:1;appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;border-radius:999px;padding:8px 12px;cursor:pointer;min-height:48px;line-height:1.2}
@@ -256,20 +264,15 @@ tr.fora td{color:var(--muted)}
 
 <script>
 "use strict";
-const EXAMS = {
-  enem2022:{
-    id:"enem2022", nome:"ENEM 2022 · Regular", sigla:"ENEM 2022", desc:"Aplicação regular, dias 1 e 2, cadernos Azul, Amarelo, Branco, Rosa e Cinza.",
-    areas:{
-      LC:{nome:"Linguagens e Códigos",base:1,dia:1,lang:true},
-      CH:{nome:"Ciências Humanas",base:46,dia:1},
-      CN:{nome:"Ciências da Natureza",base:91,dia:2},
-      MT:{nome:"Matemática",base:136,dia:2}
-    },
-    cores:{1:["AZUL","AMARELA","BRANCA","ROSA"],2:["AZUL","AMARELA","CINZA","ROSA"]},
-    langs:["Inglês","Espanhol"],
-    dados:__DATA__
-  }
-};
+const MANIFEST = __MANIFEST__;
+const HABS = __HABS__;
+const RED = __RED__;
+const LINK_INEP = "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos";
+const EXAMS = {};
+for(const m of MANIFEST){
+  EXAMS["enem"+m.ano] = {id:"enem"+m.ano, ano:m.ano, nome:"ENEM "+m.ano, sigla:"ENEM "+m.ano, areas:m.areas,
+    cores:{1:(m.cores&&m.cores["1"])||[],2:(m.cores&&m.cores["2"])||[]}, langs:m.langs||[], info:m, dados:null};
+}
 const COR_HEX = {AZUL:"#2563eb",AMARELA:"#facc15",BRANCA:"#ffffff",ROSA:"#f472b6",CINZA:"#9ca3af"};
 const COR_NOME = {AZUL:"Azul",AMARELA:"Amarela",BRANCA:"Branca",ROSA:"Rosa",CINZA:"Cinza"};
 const LETRAS = ["A","B","C","D","E"];
@@ -280,11 +283,12 @@ const SERIES = [["MED","Média","--s1"],["LC","Linguagens","--s2"],["CH","Humana
 const $ = id=>document.getElementById(id);
 let EX, AREAS, CORES, DATA, S, TABS;
 let store = {v:3, view:"lobby", exam:Object.keys(EXAMS)[0], estados:{}};
+let DASH_ESC = "all";
 const CH_SEL = new Set(["MED"]);
 
 /* ---------- estado ---------- */
 function novoEstado(ex){
-  const e = {tab:Object.keys(ex.areas)[0],cor:{1:null,2:null},lang:null,ans:{},env:{},red:[null,null,null,null,null],hist:[]};
+  const e = {tab:Object.keys(ex.areas)[0],cor:{1:null,2:null},lang:null,ans:{},env:{},res:{},red:[null,null,null,null,null],hist:[]};
   for(const a in ex.areas){ e.ans[a]=Array(45).fill(""); e.env[a]=false; }
   return e;
 }
@@ -298,6 +302,8 @@ function lerCampos(o,ex,e){
     e.env[a]=!!env[a];
   }
   if(Array.isArray(o.red)&&o.red.length===5) e.red=o.red.map(x=>NIVEIS.includes(x)?x:null);
+  if(o.res&&typeof o.res==="object") for(const a in ex.areas){ const v=o.res[a];
+    if(v&&typeof v==="object") e.res[a]={nota:(typeof v.nota==="number"&&v.nota>=0&&v.nota<=1000)?v.nota:null,ac:Math.max(0,Math.min(99,Number(v.ac)||0)),tot:Math.max(0,Math.min(99,Number(v.tot)||0)),band:typeof v.band==="number"?v.band:null,sem:v.sem?1:0}; }
 }
 function validar(o,ex){
   const e = novoEstado(ex); if(!o || typeof o!=="object") return e;
@@ -355,6 +361,7 @@ function eap(its, oks){
   return sg/sw;
 }
 function nota(a,th){ const k=DATA.k[a]; return k[0]+k[1]*th; }
+function fnota(r){ return r.semTRI||r.nota===null?`${r.acertos}/${r.validas.length}`:fmt(r.nota); }
 /* pronto = o aluno clicou em Corrigir (st.env[a]); sem marcação conta como em branco */
 function analisar(a,st=S){
   const idx = caderno(a,st); if(!idx) return null;
@@ -374,16 +381,18 @@ function analisar(a,st=S){
   r.erros = validas.length-r.acertos-r.brancos;
   r.semMarca = validas.length-r.feitas;
   r.todosBrancos = r.brancos===validas.length;
-  r.theta = r.todosBrancos ? null : eap(par,oks);
-  r.nota = r.todosBrancos ? 0 : nota(a,r.theta);
+  r.semTRI = !DATA.k[a]; r.band = (DATA.band&&DATA.band[a])||null;
+  const calc = !r.todosBrancos && !r.semTRI;
+  r.theta = calc ? eap(par,oks) : null;
+  r.nota = calc ? nota(a,r.theta) : null;
   r.delta = {};
-  if(!r.todosBrancos){
+  if(calc){
     validas.forEach((j,n)=>{ const o2=oks.slice(); o2[n]=!o2[n]; r.delta[j]=nota(a,eap(par,o2))-r.nota; });
   }
   r.ok = {}; validas.forEach((j,n)=>r.ok[j]=oks[n]);
   return r;
 }
-const fmt = (x,d=1)=>x.toFixed(d).replace(".",",");
+const fmt = (x,d=1)=>(x===null||x===undefined||Number.isNaN(x))?"–":x.toFixed(d).replace(".",",");
 function dificuldade(a,b){ const t=DATA.tert[a]; return b<=t[0]?["Fácil","f"]:b<=t[1]?["Média","m"]:["Difícil","d"]; }
 const CACHE = {};
 function analisarC(a){
@@ -413,7 +422,7 @@ function renderTopo(){
   if(!ex) return;
   const g=resumoGeral();
   let h="";
-  for(const a in AREAS){ const r=analisarC(a), ok=r&&r.pronto; h+=`<button type="button" role="tab" class="tab ${ok?"ok":""}" aria-selected="${S.tab===a}" data-act="tab" data-t="${a}" title="${AREAS[a].nome}"><span>${a}</span><b>${ok?fmt(r.nota):"–"}</b></button>`; }
+  for(const a in AREAS){ const r=analisarC(a), ok=r&&r.pronto&&r.nota!==null; h+=`<button type="button" role="tab" class="tab ${ok?"ok":""}" aria-selected="${S.tab===a}" data-act="tab" data-t="${a}" title="${AREAS[a].nome}"><span>${a}</span><b>${ok?fmt(r.nota):(r&&r.pronto?"s/TRI":"–")}</b></button>`; }
   h+=`<button type="button" role="tab" class="tab ${g.rs!==null?"ok":""}" aria-selected="${S.tab==="RED"}" data-act="tab" data-t="RED" title="Redação"><span>RED</span><b>${g.rs!==null?g.rs:"–"}</b></button>`;
   h+=`<button type="button" role="tab" class="tab ${g.media!==null?"ok":""}" aria-selected="${S.tab==="RES"}" data-act="tab" data-t="RES" title="Resultado e histórico"><span>MÉDIA${g.media!==null&&!g.completo?"*":""}</span><b>${g.media!==null?fmt(g.media):"–"}</b></button>`;
   tabs.innerHTML=h;
@@ -441,13 +450,33 @@ function renderDock(){
       <button class="btn pri" type="button" data-act="ask" data-a="${a}" ${r.feitas?"":"disabled"}>Corrigir minhas respostas</button></div>`;
   } else {
     const prox=proximaAba(a);
-    el.innerHTML=`<div class="dock-in"><div class="info"><span class="nota">${fmt(r.nota)}</span> <span class="hint">${r.acertos}/${r.validas.length} acertos · ${AREAS[a].nome}</span></div>
+    el.innerHTML=`<div class="dock-in"><div class="info"><span class="nota">${r.nota!==null?fmt(r.nota)+(r.band?`<small style="font-size:.7rem;font-weight:600"> ±${Math.round(r.band)}</small>`:""):r.acertos+"/"+r.validas.length}</span> <span class="hint">${r.nota!==null?r.acertos+"/"+r.validas.length+" acertos":"acertos, sem TRI neste ano"} · ${AREAS[a].nome}</span></div>
       <div class="row"><button class="btn" type="button" data-act="editar" data-a="${a}">Editar respostas</button>${prox?`<button class="btn pri" type="button" data-act="tab" data-t="${prox}">${prox==="RES"?"Ver resultado":prox==="RED"?"Redação":"Próxima: "+prox} →</button>`:""}</div></div>`;
   }
 }
 function sig(st){ return JSON.stringify([st.cor,st.lang,st.ans,st.env,st.red]); }
 function jaSalvo(){ const u=S.hist[S.hist.length-1]; return !!u&&sig(u)===sig(S); }
 function proximaAba(a){ const i=TABS.indexOf(a); return i>=0&&i<TABS.length-1?TABS[i+1]:null; }
+
+/* ---------- dados por prova (carregados quando a pessoa abre a prova) ---------- */
+const LOADING = {};
+function carregarDados(id){
+  const ex = EXAMS[id]; if(ex.dados) return Promise.resolve(ex.dados);
+  if(!LOADING[id]) LOADING[id] = new Promise((ok,erro)=>{
+    const sc=document.createElement("script"); sc.src=`dados/enem_${ex.ano}.js`;
+    sc.onload=()=>{ const d=(window.__DADOS||{})[ex.ano]; if(d){ ex.dados=d; ok(d); } else erro(new Error("sem dados")); };
+    sc.onerror=()=>erro(new Error("falha ao carregar"));
+    document.head.appendChild(sc);
+  }).finally(()=>{ delete LOADING[id]; });
+  return LOADING[id];
+}
+function abrirExame(id){
+  setExam(id); const main=$("main");
+  main.innerHTML=`<section class="panel"><div class="empty">Carregando ${EX.nome}…</div></section>`; $("dock").classList.add("hidden"); $("tabs").classList.add("hidden");
+  return carregarDados(id).then(()=>{ setExam(id); store.view="exam"; salvar(); renderAll(); window.scrollTo({top:0,behavior:"auto"}); }).catch(()=>{
+    main.innerHTML=`<section class="panel"><h2>Não consegui carregar ${EX.nome}</h2><p class="hint" style="margin:6px 0 12px">Os dados desta prova são baixados na primeira vez que você a abre. Verifique a conexão e tente de novo.</p><div class="row"><button class="btn pri" type="button" data-act="abrirExam" data-ex="${id}">Tentar de novo</button><button class="btn" type="button" data-act="hub">Voltar ao hub</button></div></section>`;
+  });
+}
 
 /* ---------- navegação ---------- */
 function renderAll(){
@@ -456,7 +485,18 @@ function renderAll(){
   else renderPane();
   initCharts();
 }
+/* resumo por área corrigida: o hub mostra "Correção em andamento" sem precisar carregar os dados da prova */
+function sincRes(){
+  let mudou=false;
+  for(const a in AREAS){
+    const r=analisarC(a);
+    if(r&&r.pronto){ const v={nota:r.nota,ac:r.acertos,tot:r.validas.length,band:r.band||null,sem:r.semTRI?1:0}; if(JSON.stringify(S.res[a])!==JSON.stringify(v)){ S.res[a]=v; mudou=true; } }
+    else if(S.res[a]){ delete S.res[a]; mudou=true; }
+  }
+  if(mudou) salvar();
+}
 function renderPane(){
+  sincRes();
   const t=S.tab;
   if(AREAS[t]) renderAreaPane(t);
   else if(t==="RED") renderRedPane();
@@ -471,7 +511,7 @@ function irAba(t){
 function selRow(d){
   const tl=diaTemLang(d), cor=S.cor[d];
   let h=`<section class="panel"><div class="sel"><div><span class="lbl">Caderno do dia ${d} · cor impressa na capa (obrigatório)</span><div class="row">`;
-  CORES[d].forEach(c=>{ h+=`<button type="button" class="chip" aria-pressed="${cor===c}" data-act="cor" data-d="${d}" data-c="${c}"><span class="dot" style="background:${COR_HEX[c]}"></span>${COR_NOME[c]}</button>`; });
+  (CORES[d]||[]).forEach(c=>{ h+=`<button type="button" class="chip" aria-pressed="${cor===c}" data-act="cor" data-d="${d}" data-c="${c}"><span class="dot" style="background:${COR_HEX[c]}"></span>${COR_NOME[c]}</button>`; });
   h+=`</div></div>`;
   if(tl){ h+=`<div><span class="lbl">Idioma da prova (obrigatório)</span><div class="row">`; EX.langs.forEach((t,v)=>{ h+=`<button type="button" class="chip" aria-pressed="${S.lang===v}" data-act="lang" data-l="${v}">${t}</button>`; }); h+=`</div></div>`; }
   h+=`</div>`;
@@ -482,19 +522,42 @@ function selRow(d){
 
 /* ---------- aba de área ---------- */
 function diaSeg(d){
-  const nomes={1:"Linguagens e Humanas",2:"Natureza e Matemática"};
-  return `<div class="seg" role="group" aria-label="Dia da prova">${[1,2].map(x=>`<button type="button" aria-pressed="${x===d}" data-act="dia" data-d="${x}">Dia ${x}<small>${nomes[x]}</small></button>`).join("")}</div>`;
+  const curto={LC:"Linguagens",CH:"Humanas",CN:"Natureza",MT:"Matemática"};
+  const dias=[...new Set(Object.keys(AREAS).map(a=>AREAS[a].dia))].sort();
+  const nome=x=>Object.keys(AREAS).filter(a=>AREAS[a].dia===x).map(a=>curto[a]).join(" e ");
+  return `<div class="seg" role="group" aria-label="Dia da prova">${dias.map(x=>`<button type="button" aria-pressed="${x===d}" data-act="dia" data-d="${x}">Dia ${x}<small>${nome(x)}</small></button>`).join("")}</div>`;
+}
+function pillHtml(r){
+  if(r.nota===null) return r.todosBrancos?`<div class="nota-pill"><b>–</b><small>SEM RESPOSTAS</small></div>`:`<div class="nota-pill" style="background:var(--soft);color:var(--ink)"><b>${r.acertos}/${r.validas.length}</b><small>ACERTOS · SEM TRI</small></div>`;
+  return `<div class="nota-pill"><b>${fmt(r.nota)}</b><small>${r.band?"ESTIMATIVA ±"+Math.round(r.band):"NOTA TRI ESTIMADA"}</small></div>`;
+}
+function avisoArea(a){
+  const A=AREAS[a];
+  if(A.classe==="EXATO"&&A.recuperado) return `<div class="note info" style="margin-bottom:12px"><b>Nota exata, com parâmetros recuperados.</b> No arquivo oficial de itens desta prova, os parâmetros de ${A.nome} de alguns itens estão trocados ou incorretos e, com eles, a nota oficial não é reproduzida. Recuperamos os valores que o INEP de fato usou a partir das notas oficiais dos participantes e conferimos o resultado em cadernos que não entraram no ajuste: a nota calculada aqui bate com a oficial.</div>`;
+  if(A.classe==="ESTIMADO"){
+    const bd=A.band||50, mg=bd<1?bd.toFixed(1).replace(".",","):String(Math.round(bd));
+    if(bd<1) return `<div class="note" style="margin-bottom:12px"><b>Praticamente exata (margem de ±${mg} ponto).</b> O arquivo oficial de itens desta prova tem parâmetros de ${A.nome} incorretos; recuperamos os valores usados pelo INEP a partir das notas oficiais e, com eles, ${A.pct_dentro_1!=null?String(A.pct_dentro_1).replace(".",","):"mais de 99,8"}% dos participantes testados ficam a menos de 1 ponto da nota oficial. Como esse índice ficou um pouco abaixo do nosso critério de 99,9% para chamar de "exata", mantemos o rótulo de estimativa, com erro típico abaixo de ±${mg} ponto em 95% dos casos.</div>`;
+    return `<div class="note" style="margin-bottom:12px"><b>Estimativa com margem.</b> Nesta prova a nota oficial de ${A.nome} não é reproduzida exatamente pelos dados públicos do INEP. O erro típico fica abaixo de ±${mg} pontos em 95% dos casos testados: trate o número como aproximação, não como a nota oficial.</div>`;
+  }
+  if(A.classe==="NAO_VALIDO") return `<div class="note" style="margin-bottom:12px"><b>Sem nota TRI nesta área.</b> Para ${A.nome} desta prova, a nota oficial não pôde ser reproduzida a partir dos dados públicos. Você ainda pode marcar o cartão e ver acertos, erros, gabarito e enunciados, mas não calculamos a TRI.</div>`;
+  return "";
+}
+function avisoOrdem(){
+  if(EX.info.ordem_moderna) return "";
+  const nomes={LC:"Linguagens",CH:"Humanas",CN:"Natureza",MT:"Matemática"};
+  const dia=d=>Object.keys(AREAS).filter(x=>AREAS[x].dia===d).map(x=>nomes[x]).join(" + ");
+  return `<div class="note info" style="margin-bottom:12px">Atenção à ordem desta prova: o <b>dia 1</b> foi ${dia(1)} e o <b>dia 2</b> foi ${dia(2)}. Nas edições mais recentes (2017 em diante) a ordem é outra (dia 1: Linguagens + Humanas).</div>`;
 }
 function renderAreaPane(a){
   const d=AREAS[a].dia, base=AREAS[a].base, main=$("main");
-  let h=diaSeg(d)+selRow(d);
+  let h=diaSeg(d)+avisoOrdem()+avisoArea(a)+selRow(d);
   if(!diaLiberado(d)){
     h+=`<section class="panel"><div class="trava">🔒 ${!S.cor[d]?"Escolha a cor do caderno acima para liberar o cartão.":"Escolha o idioma (inglês ou espanhol) acima para liberar o cartão."}</div></section>`;
     main.innerHTML=h; return;
   }
   const idx=caderno(a), r=analisarC(a);
   h+=`<section class="panel area" id="area-${a}"><div class="area-h"><div><h2>${AREAS[a].nome}<small id="prog-${a}">Questões ${base} a ${base+44} · ${r.feitas}/${r.validas.length} marcadas</small></h2></div>
-    ${r.pronto?`<div class="nota-pill"><b>${fmt(r.nota)}</b><small>NOTA TRI ESTIMADA</small></div>`:""}</div>
+    ${r.pronto?pillHtml(r):""}</div>
     <div class="sum" id="sum-${a}"></div>
     <details class="acc" open data-k="card"><summary>${r.pronto?"Cartão corrigido":"Cartão-resposta"} <small>${r.pronto?"verde acertou, vermelho errou, anel = gabarito":"clique nas bolinhas ou digite as letras"}</small></summary><div class="acc-b">`;
   if(r.pronto) h+=`<div class="row"><button class="btn sm" type="button" data-act="editar" data-a="${a}">Editar respostas</button><span class="hint">As marcações ficam salvas: depois de editar, corrija de novo.</span></div>`;
@@ -550,6 +613,7 @@ function pintar(a,skipChrome){
 }
 
 /* ---------- resultado de uma área ---------- */
+function esc_(t){ return esc(t); }
 function esc(t){ return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function linkRes(a,pos,cor,k){
   const e=DATA.enun&&DATA.enun[a]&&DATA.enun[a][k];
@@ -569,25 +633,25 @@ function renderSum(a,r){
   if(!r.pronto){ box.innerHTML=""; return; }
   const nFora=r.itens.filter(i=>i[0]===null).length, pct=Math.round(100*r.acertos/r.validas.length);
   let h=`<div class="stats">
-    <div class="stat main"><b>${fmt(r.nota)}</b><span>nota TRI estimada</span></div>
-    <div class="stat"><b>${r.acertos}<span style="font-size:.9rem"> / ${r.validas.length}</span></b><span>acertos · ${pct}%</span></div>
+    ${r.nota!==null?`<div class="stat main"><b>${fmt(r.nota)}</b><span>${r.band?"estimativa ±"+Math.round(r.band):"nota TRI estimada"}</span></div>`:`<div class="stat main"><b>${r.acertos}<span style="font-size:.9rem"> / ${r.validas.length}</span></b><span>acertos${r.semTRI?" · sem TRI nesta área":""}</span></div>`}
+    <div class="stat"><b>${pct}%</b><span>aproveitamento · ${r.acertos} acertos</span></div>
     <div class="stat"><b>${r.erros}</b><span>erros</span></div>
     <div class="stat"><b>${r.brancos}</b><span>em branco${r.semMarca?` (${r.semMarca} sem marcação)`:""}</span></div></div>`;
-  if(r.todosBrancos) h+=`<div class="note" style="margin-top:10px">Nenhuma questão respondida: o INEP atribui nota 0 a cartão totalmente em branco.</div>`;
+  if(r.todosBrancos) h+=`<div class="note" style="margin-top:10px">Nenhuma questão respondida: não calculo nota para cartão totalmente em branco (o tratamento desse caso varia de um ano para outro no INEP).</div>`;
   if(nFora) h+=`<p class="hint" style="margin:10px 0 0">Fora da nota: ${r.itens.map((it,j)=>it[0]===null?`<b>${AREAS[a].base+j}</b> (${it[5]===1?"anulada, gabarito X":"excluída da calibração"})`:null).filter(Boolean).join(", ")}. Dá para marcar para estudar; não altera a nota.${(()=>{const v=Object.values(r.info).filter(x=>x!==null);return v.length?` Nelas você acertou ${v.filter(Boolean).length} de ${v.length} marcadas.`:"";})()}</p>`;
   box.innerHTML=h;
 }
 function renderDet(a,r){
   const box=$("det-"+a); if(!box) return;
   if(!r.pronto){ box.innerHTML=""; return; }
-  const cor=S.cor[AREAS[a].dia], base=AREAS[a].base, hd=DATA.habs[a], kk=DATA.k[a];
+  const cor=S.cor[AREAS[a].dia], base=AREAS[a].base, hd=HABS[a], kk=DATA.k[a], temHab=!EX.info.sem_habilidade;
   const hab={};
-  r.validas.forEach(j=>{ const k=r.itens[j][3]; (hab[k]=hab[k]||{t:0,ok:0,q:[]}); hab[k].t++; if(r.ok[j])hab[k].ok++; else hab[k].q.push(base+j); });
+  r.validas.forEach(j=>{ const k=r.itens[j][3]; if(!k||!hd.h[k]) return; (hab[k]=hab[k]||{t:0,ok:0,q:[]}); hab[k].t++; if(r.ok[j])hab[k].ok++; else hab[k].q.push(base+j); });
   const lista=Object.entries(hab).map(([k,v])=>({k:+k,...v,p:v.ok/v.t})).sort((x,y)=>x.p-y.p||y.t-x.t);
   const item=x=>{ const cl=x.p<=.5?"low":x.p<.8?"mid":""; return `<div class="xi"><div class="tp"><span>H${x.k} · ${x.ok}/${x.t} (${Math.round(x.p*100)}%)</span><span class="hint">Competência ${hd.hc[x.k]}</span></div>
     <div class="pb ${cl}"><i style="width:${Math.round(x.p*100)}%"></i></div><p>${hd.h[x.k]}</p>${x.q.length?`<p style="margin-top:4px">Errou: ${x.q.map(n=>"questão "+n).join(", ")}</p>`:""}</div>`; };
   const top=lista.slice(0,5), resto=lista.slice(5), fracas=lista.filter(x=>x.p<1).length;
-  let h=`<details class="acc" data-k="rx"><summary>Raio-X: onde melhorar <small>${fracas?fracas+" habilidades com erro":"sem erros"}</small></summary><div class="acc-b">
+  let h=!temHab||!lista.length?"":`<details class="acc" data-k="rx"><summary>Raio-X: onde melhorar <small>${fracas?fracas+" habilidades com erro":"sem erros"}</small></summary><div class="acc-b">
     <p class="hint">Habilidades da Matriz de Referência do ENEM, da mais fraca para a mais forte. O INEP não divulga o assunto exato de cada questão; a habilidade indica o que ela cobra. Mostro as 5 mais fracas.</p>
     <div class="xr">${top.map(item).join("")}</div>
     ${resto.length?`<details class="paste" style="margin-top:10px"><summary>Ver todas as habilidades (${resto.length} a mais)</summary><div class="xr">${resto.map(item).join("")}</div></details>`:""}
@@ -610,7 +674,7 @@ function renderDet(a,r){
     h+=`<tr class="${ok?"r-ok":"r-er"}" data-er="${ok?0:1}"><td class="c">${pos}</td><td>${v==="-"?"em branco":(v||"sem marcação")}</td><td>${it[4]}</td><td class="res-c">${ok?"Acertou":"Errou"}</td><td><span class="dif ${dd[1]}">${dd[0]}</span></td><td>${pts}</td><td>H${it[3]}</td><td class="par">${fmt(it[0],2)}</td><td class="par">${fmt(it[1],2)}</td><td class="par">${fmt(it[2],2)}</td><td>${lk}</td></tr>`;
   });
   h+=`</tbody></table></div><p class="hint" style="margin-top:8px">Dificuldade é relativa a esta prova (parâmetro b dividido em três faixas). "Pontos em jogo" é a variação da sua nota se a questão tivesse o resultado oposto, mantendo as demais.</p></div></details>`;
-  h+=`<details class="acc" data-k="cl"><summary>Como esta nota foi calculada</summary><div class="acc-b"><p class="hint" style="margin:0">${r.todosBrancos?"Cartão todo em branco: nota 0, como no INEP.":`Proficiência estimada (EAP): <code>θ = ${fmt(r.theta,4)}</code> com ${r.validas.length} questões.<br>Conversão desta área: <code>nota = ${fmt(kk[0],3)} + ${fmt(kk[1],3)} × θ = ${fmt(r.nota,2)}</code>.<br>Nos testes com as notas oficiais a diferença foi de no máximo 0,1 ponto, desde que o caderno escolhido seja o da sua prova.`}</p></div></details>`;
+  h+=`<details class="acc" data-k="cl"><summary>Como esta nota foi calculada</summary><div class="acc-b"><p class="hint" style="margin:0">${r.semTRI?"Sem TRI nesta área: a nota oficial deste ano não é reproduzível com os dados públicos, então só mostramos os acertos.":r.todosBrancos?"Cartão todo em branco: sem nota calculada.":`Proficiência estimada (EAP): <code>θ = ${fmt(r.theta,4)}</code> com ${r.validas.length} questões.<br>Conversão desta área: <code>nota = ${fmt(kk[0],3)} + ${fmt(kk[1],3)} × θ = ${fmt(r.nota,2)}</code>.<br>${r.band?`Esta área é uma <b>estimativa</b>: nos testes com as notas oficiais o erro ficou abaixo de ±${Math.round(r.band)} pontos em 95% dos casos.`:"Nos testes com as notas oficiais, praticamente todos os participantes ficaram a menos de 1 ponto da nota oficial, desde que o caderno escolhido seja o da sua prova."}`}</p></div></details>`;
   box.innerHTML=h;
 }
 
@@ -628,7 +692,7 @@ function corrigir(a){
   S.env[a]=true; salvar(); fecharModal(); renderPane(); window.scrollTo({top:0,behavior:"auto"});
   const r=analisarC(a), prox=proximaAba(a);
   abrirModal(`<h3>${AREAS[a].nome}</h3>
-    <div class="bignota">${fmt(r.nota)}</div><p class="hint" style="margin-top:2px">nota TRI estimada</p>
+    <div class="bignota">${r.nota!==null?fmt(r.nota):r.acertos+"/"+r.validas.length}</div><p class="hint" style="margin-top:2px">${r.nota!==null?(r.band?"estimativa, margem ±"+Math.round(r.band)+" pontos":"nota TRI estimada"):(r.todosBrancos?"nenhuma resposta marcada":"acertos (sem TRI nesta área)")}</p>
     <div class="stats" style="margin-top:12px"><div class="stat"><b>${r.acertos}</b><span>acertos de ${r.validas.length}</span></div><div class="stat"><b>${r.erros}</b><span>erros</span></div><div class="stat"><b>${r.brancos}</b><span>em branco</span></div><div class="stat"><b>${Math.round(100*r.acertos/r.validas.length)}%</b><span>aproveitamento</span></div></div>
     <div class="modal-act"><button class="btn pri" type="button" data-act="fechar">Ver minha correção</button>${prox?`<button class="btn" type="button" data-act="tab" data-t="${prox}">${prox==="RES"?"Ver resultado":prox==="RED"?"Ir para a redação":"Próxima área: "+prox} →</button>`:""}</div>`);
 }
@@ -637,7 +701,7 @@ function corrigir(a){
 let REDFOCO=0;
 function posRed(y){ if(innerWidth<900){ const r=document.querySelector(".rrow.on"); if(r) r.scrollIntoView({block:"start"}); } else window.scrollTo(0,y); }
 function fbHtml(i,s){
-  const R=DATA.red.comp[i], N=DATA.red.nivel;
+  const R=RED.comp[i], N=RED.nivel;
   if(s===null) return `<div class="redfb"><h3>C${i+1} · ${R.t}</h3><p class="hint">Toque numa nota ao lado para ver por que o corretor provavelmente deu essa nota e como subir.</p></div>`;
   const nx=s<200?s+40:null;
   let h=`<div class="redfb"><h3>C${i+1} · ${R.t} · ${s} pontos (${N[String(s)].toLowerCase()})</h3>
@@ -655,33 +719,33 @@ function renderRedPane(){
     <div class="note info" style="margin-bottom:12px">Estimativa: o INEP não publica o motivo de cada nota. Mostro o que o critério oficial de cada nível diz, que é o que provavelmente levou o corretor ou a IA àquela nota. O motivo real está no comentário de quem corrigiu.</div>
     <div class="redgrid"><div id="redlist">`;
   for(let i=0;i<5;i++){
-    h+=`<div class="rrow ${REDFOCO===i?"on":""}" data-act="comp" data-i="${i}"><div class="rt"><span style="color:var(--ink)">C${i+1} · ${DATA.red.comp[i].t}</span><span>${S.red[i]!==null?S.red[i]:"–"}</span></div><div class="lvls" role="group" aria-label="Nota da competência ${i+1}">${NIVEIS.map(v=>`<button type="button" class="lv" aria-pressed="${S.red[i]===v}" data-act="nota" data-i="${i}" data-v="${v}">${v}</button>`).join("")}</div><div class="inl">${REDFOCO===i?fbHtml(i,S.red[i]):""}</div></div>`;
+    h+=`<div class="rrow ${REDFOCO===i?"on":""}" data-act="comp" data-i="${i}"><div class="rt"><span style="color:var(--ink)">C${i+1} · ${RED.comp[i].t}</span><span>${S.red[i]!==null?S.red[i]:"–"}</span></div><div class="lvls" role="group" aria-label="Nota da competência ${i+1}">${NIVEIS.map(v=>`<button type="button" class="lv" aria-pressed="${S.red[i]===v}" data-act="nota" data-i="${i}" data-v="${v}">${v}</button>`).join("")}</div><div class="inl">${REDFOCO===i?fbHtml(i,S.red[i]):""}</div></div>`;
   }
   h+=`<div id="foco"></div></div><div class="redfbw" id="redfb">${fbHtml(REDFOCO,S.red[REDFOCO])}</div></div>
-    <p class="hint" style="margin:12px 0 0">Fonte dos critérios: ${esc(DATA.red.fonte)}</p></section>`;
+    <p class="hint" style="margin:12px 0 0">Fonte dos critérios: ${esc(RED.fonte)}</p></section>`;
   main.innerHTML=h; renderFoco();
 }
 function renderFoco(){
   const el=$("foco"); if(!el) return;
   const feitos=S.red.map((s,i)=>({s,i})).filter(x=>x.s!==null&&x.s<200).sort((a,b)=>a.s-b.s||a.i-b.i);
-  el.innerHTML=feitos.length&&S.red.every(x=>x!==null)?`<p class="hint" style="margin:10px 0 0"><b>Por onde começar:</b> as competências mais baixas dão mais ganho.</p><div class="foco">${feitos.slice(0,3).map(x=>`<span>C${x.i+1} · ${DATA.red.comp[x.i].t} (${x.s})</span>`).join("")}</div>`:"";
+  el.innerHTML=feitos.length&&S.red.every(x=>x!==null)?`<p class="hint" style="margin:10px 0 0"><b>Por onde começar:</b> as competências mais baixas dão mais ganho.</p><div class="foco">${feitos.slice(0,3).map(x=>`<span>C${x.i+1} · ${RED.comp[x.i].t} (${x.s})</span>`).join("")}</div>`:"";
 }
 
 /* ---------- resultado, histórico e dashboard ---------- */
 function resHtmlBoletim(){
   const R={}; for(const a in AREAS) R[a]=analisarC(a);
-  const tile=a=>{ const r=R[a], ok=r&&r.pronto; return `<div class="tile ${ok?"ok":""}"><span>${AREAS[a].nome}</span><b>${ok?fmt(r.nota):"–"}</b>${ok?`<span>${r.acertos}/${r.validas.length} acertos · ${Math.round(100*r.acertos/r.validas.length)}%</span>`:`<span>${r&&r.feitas?r.feitas+" marcadas, falta corrigir":"sem preenchimento"}</span>`}</div>`; };
+  const tile=a=>{ const r=R[a], ok=r&&r.pronto; return `<div class="tile ${ok&&r.nota!==null?"ok":""}"><span>${AREAS[a].nome}</span><b>${ok?(r.nota!==null?fmt(r.nota):"s/TRI"):"–"}</b>${ok?`<span>${r.acertos}/${r.validas.length} acertos · ${Math.round(100*r.acertos/r.validas.length)}%${r.band?" · ±"+Math.round(r.band):""}${r.semTRI?" · sem TRI neste ano":""}</span>`:`<span>${r&&r.feitas?r.feitas+" marcadas, falta corrigir":"sem preenchimento"}</span>`}</div>`; };
   let h="";
   [1,2].forEach(d=>{
-    const as=Object.keys(AREAS).filter(a=>AREAS[a].dia===d);
+    const as=Object.keys(AREAS).filter(a=>AREAS[a].dia===d); if(!as.length) return;
     as.forEach(a=>h+=tile(a));
-    const ok=as.every(a=>R[a]&&R[a].pronto);
+    const ok=as.every(a=>R[a]&&R[a].pronto&&R[a].nota!==null);
     h+=`<div class="tile dia ${ok?"ok":""}"><span>Média do dia ${d}</span><b>${ok?fmt(as.reduce((s,a)=>s+R[a].nota,0)/as.length):"–"}</b><span>${ok?"média simples das duas áreas":"precisa das duas áreas corrigidas"}</span></div>`;
   });
   const g=resumoGeral();
   h+=`<div class="tile ${g.rs!==null?"ok":""}"><span>Redação</span><b>${g.rs!==null?g.rs:"–"}</b><span>${g.rs!==null?"soma das 5 competências":"lance na aba Redação"}</span></div>`;
   let fin=g.media===null?`<span>Corrija ao menos uma área para ver a média.</span>`:
-    `<div><span>${g.completo?"Média simples das 5 notas":`Média simples parcial (${g.n} de ${g.total} notas)`}</span><br><b>${fmt(g.media)}</b></div><span>${g.completo?"4 áreas + redação":"Falta: "+[...Object.keys(AREAS).filter(a=>!(R[a]&&R[a].pronto)),...(g.rs===null?["RED"]:[])].map(x=>AREAS[x]?AREAS[x].nome:"Redação").join(", ")}</span>`;
+    `<div><span>${g.completo?"Média simples das 5 notas":`Média simples parcial (${g.n} de ${g.total} notas)`}</span><br><b>${fmt(g.media)}</b></div><span>${g.completo?"4 áreas + redação":"Falta: "+[...Object.keys(AREAS).filter(a=>!(R[a]&&R[a].pronto&&R[a].nota!==null)),...(g.rs===null?["RED"]:[])].map(x=>AREAS[x]?AREAS[x].nome:"Redação").join(", ")}</span>`;
   let cur="";
   if(g.media!==null){
     const m=Math.round(g.media);
@@ -700,7 +764,7 @@ function renderResPane(){
     <section class="panel"><h2>Guardar no histórico</h2>
       <p class="hint" style="margin:4px 0 10px">Salve este simulado para acompanhar a sua evolução quando refizer a prova. Depois, comece um novo para preencher de novo.</p>
       <div class="row"><input type="text" id="nomeSim" maxlength="60" value="${esc(nomeProximo())}" aria-label="Nome do simulado" style="flex:1;min-width:180px"><button class="btn pri" type="button" data-act="salvarHist" ${g.n?"":"disabled"}>Salvar no histórico</button><button class="btn" type="button" data-act="novoSim">Novo simulado (limpa o cartão)</button></div></section>
-    <section class="panel" id="dashSec"><h2>Sua evolução</h2>${dashHtml(EX.id)}</section>
+    <section class="panel" id="dashSec"><h2>Sua evolução</h2>${dashHtml(EX.id,false)}</section>
     <section class="panel">${stripHtml()}</section>
     <details class="panel acc foot" style="padding:0"><summary>Como a nota é calculada e validação</summary><div class="acc-b">${TRANSP}</div></details>`;
 }
@@ -730,26 +794,34 @@ function apagarHist(id,volta){
 
 /* dashboard: stats, gráfico de linhas, tabela (alternativa acessível) */
 const CHARTS = {};
-function dashHtml(id){
-  const st=store.estados[id], hist=st.hist.slice().sort((a,b)=>a.t-b.t);
+function histDe(esc){
+  const ids = esc==="all" ? Object.keys(EXAMS) : [esc], out=[];
+  for(const id of ids){ const st=store.estados[id]; if(!st) continue; for(const h of st.hist) out.push({...h,_ex:id,nome:(esc==="all"?EXAMS[id].sigla+" · ":"")+h.nome}); }
+  return out.sort((a,b)=>a.t-b.t);
+}
+function dashHtml(esc,comEscopo){
+  const hist=histDe(esc);
   if(!hist.length) return `<div class="empty">Nenhum simulado salvo ainda. Corrija as áreas, vá em <b>Resultado</b> e clique em <b>Salvar no histórico</b>: aqui você acompanha se a nota está subindo.</div>`;
   const meds=hist.map(h=>h.notas.MED).filter(v=>v!==null);
   const best=meds.length?Math.max(...meds):null, last=meds.length?meds[meds.length-1]:null, first=meds.length?meds[0]:null;
   const dv=meds.length>1?last-first:null;
-  let h=`<div class="kpis"><div class="tile"><span>Simulados salvos</span><b>${hist.length}</b></div>
+  let h="";
+  if(comEscopo){ const comHist=Object.keys(EXAMS).filter(id=>store.estados[id]&&store.estados[id].hist.length);
+    h+=`<div class="row" style="margin-bottom:10px"><label class="hint" for="escopo">Mostrar:</label><select id="escopo" data-act="escopo"><option value="all" ${esc==="all"?"selected":""}>Todas as provas</option>${comHist.map(id=>`<option value="${id}" ${esc===id?"selected":""}>${EXAMS[id].nome}</option>`).join("")}</select></div>`; }
+  h+=`<div class="kpis"><div class="tile"><span>Simulados salvos</span><b>${hist.length}</b></div>
     <div class="tile ok"><span>Melhor média</span><b>${best!==null?fmt(best):"–"}</b></div>
     <div class="tile"><span>Última média</span><b>${last!==null?fmt(last):"–"}</b></div>
     <div class="tile"><span>Evolução (última vs primeira)</span><b class="${dv===null?"":dv>=0?"delta up":"delta dn"}">${dv===null?"–":(dv>=0?"▲ +":"▼ ")+fmt(dv)}</b></div></div>`;
   h+=`<div class="sers" role="group" aria-label="Séries do gráfico">`+SERIES.map(s=>`<button type="button" class="chip" aria-pressed="${CH_SEL.has(s[0])}" data-act="ser" data-s="${s[0]}"><span class="dot" style="background:var(${s[2]})"></span>${s[1]}</button>`).join("")+`</div>`;
-  h+=`<div class="chartbox" id="cb-${id}">${chartSvg(hist,id)}</div>`;
+  h+=`<div class="chartbox" id="cb-${esc}">${chartSvg(hist,esc)}</div>`;
   h+=`<div class="tblw" style="margin-top:12px"><table style="min-width:560px"><thead><tr><th>Simulado</th><th>Data</th><th>LC</th><th>CH</th><th>CN</th><th>MT</th><th>RED</th><th>Média</th><th>Δ média</th><th></th></tr></thead><tbody>`;
   let prev=null;
   hist.forEach(x=>{
     const n=x.notas, m=n.MED, dl=(m!==null&&prev!==null)?m-prev:null; if(m!==null) prev=m;
     const f=v=>v===null?"–":fmt(v);
-    h+=`<tr><td><b>${esc(x.nome)}</b></td><td>${new Date(x.t).toLocaleDateString("pt-BR")}</td><td>${f(n.LC)}</td><td>${f(n.CH)}</td><td>${f(n.CN)}</td><td>${f(n.MT)}</td><td>${n.RED===null?"–":n.RED}</td><td><b>${f(m)}${x.nn&&x.nn<5?"*":""}</b></td><td>${dl===null?"–":`<span class="delta ${dl>=0?"up":"dn"}">${dl>=0?"▲ +":"▼ "}${fmt(dl)}</span>`}</td><td><button class="btn sm" type="button" data-act="abrirHist" data-id="${x.id}" data-ex="${id}">Abrir</button> <button class="btn sm danger" type="button" data-act="delHist" data-id="${x.id}" data-ex="${id}">Excluir</button></td></tr>`;
+    h+=`<tr><td><b>${esc_(x.nome)}</b></td><td>${new Date(x.t).toLocaleDateString("pt-BR")}</td><td>${f(n.LC)}</td><td>${f(n.CH)}</td><td>${f(n.CN)}</td><td>${f(n.MT)}</td><td>${n.RED===null?"–":n.RED}</td><td><b>${f(m)}${x.nn&&x.nn<5?"*":""}</b></td><td>${dl===null?"–":`<span class="delta ${dl>=0?"up":"dn"}">${dl>=0?"▲ +":"▼ "}${fmt(dl)}</span>`}</td><td><button class="btn sm" type="button" data-act="abrirHist" data-id="${x.id}" data-ex="${x._ex}">Abrir</button> <button class="btn sm danger" type="button" data-act="delHist" data-id="${x.id}" data-ex="${x._ex}">Excluir</button></td></tr>`;
   });
-  return h+`</tbody></table></div><p class="hint" style="margin-top:8px">* Simulado parcial: a média usa só as notas que existiam (menos de 5). Não compare diretamente com um simulado completo.</p>`;
+  return h+`</tbody></table></div><p class="hint" style="margin-top:8px">* Simulado parcial: a média usa só as notas que existiam (menos de 5). Não compare diretamente com um simulado completo. Provas diferentes têm dificuldades diferentes: compare a evolução com cautela entre anos.</p>`;
 }
 function chartSvg(hist,uid){
   const n=hist.length, sel=SERIES.filter(s=>CH_SEL.has(s[0]));
@@ -803,25 +875,65 @@ const TRANSP=`<p><b>Aviso:</b> é uma <b>estimativa</b> feita com dados público
   <ol>
     <li>Cada questão tem três parâmetros públicos do INEP: <b>a</b> (discriminação), <b>b</b> (dificuldade) e <b>c</b> (acerto ao acaso). A chance de acertar é <code>P(θ) = c + (1 − c) / (1 + e^(−a·(θ − b)))</code>.</li>
     <li>Com seus acertos e erros, calculamos a proficiência θ pelo método <b>EAP</b> (média a posteriori), com distribuição a priori normal padrão e 40 pontos de quadratura entre −4 e 4, como descreve o documento "Procedimentos de Análise" do INEP. Questões sem marcação contam como em branco. Questões anuladas ou sem calibração podem ser marcadas para estudo, mas ficam fora da nota.</li>
-    <li>θ vira nota por uma conversão linear própria de cada área: <code>nota = m + s · θ</code>. {{CONSTS}} O INEP não publica essas constantes; nós as obtivemos por regressão contra as notas oficiais.</li>
+    <li>θ vira nota por uma conversão linear própria de cada área, a mesma em todos os anos validados: <code>nota = m + s · θ</code>, com Ciências da Natureza 501,144 + 113,102·θ, Ciências Humanas 501,489 + 112,310·θ, Linguagens 499,978 + 108,086·θ e Matemática 500,020 + 129,646·θ. O INEP não publica essas constantes; nós as obtivemos por regressão contra as notas oficiais.</li>
     <li>A "coerência das respostas" que o INEP cita é um efeito do próprio modelo: acertar questões difíceis e errar fáceis reduz a nota naturalmente. Não há regra extra.</li>
   </ol>
-  <p><b>Validação:</b> {{VAL}}</p>
-  <p><b>Limites:</b> vale para a aplicação regular, cadernos {{CADERNOS}}. Não vale para reaplicação, provas adaptadas (Laranja e Verde) nem outras aplicações. Se escolher o caderno errado, a nota sai errada, sem aviso. O INEP não publica o assunto de cada questão, só a habilidade da Matriz de Referência; é isso que o raio-X mostra. A orientação de redação segue os níveis oficiais do INEP. "Ver" mostra o enunciado extraído da prova oficial; "Pesquisar" busca na internet pela frase da questão.</p>`;
+  <p><b>Validação por prova e área</b> (comparação com a nota oficial de todos os participantes da aplicação regular nos microdados):</p>
+  <ul>
+    <li><b>Exata</b>: pelo menos 99,9% dos participantes ficam a menos de 1 ponto da nota oficial (na grande maioria, a menos de 0,1). Os poucos restantes são cartões atípicos, como caderno marcado errado.</li>
+    <li><b>Estimativa</b>: a nota oficial acompanha o cálculo, mas com ruído (correlação acima de 0,94). Mostramos a nota com a margem de erro típica, e ela <b>não</b> deve ser tratada como a nota oficial.</li>
+    <li><b>Sem TRI</b>: a nota oficial não pôde ser reproduzida com os dados públicos daquela prova e área. Nesse caso mostramos só acertos, gabarito e enunciados.</li>
+  </ul>
+  <p><b>Parâmetros recuperados:</b> em algumas provas e áreas, o arquivo oficial de itens do INEP tem parâmetros de itens fora do lugar ou incorretos, e a nota oficial não pode ser reproduzida com eles. Nesses casos, recuperamos os parâmetros efetivamente usados a partir das notas oficiais dos participantes (busca da combinação que reproduz as notas e ajuste fino) e só adotamos o resultado quando ele também reproduz a nota oficial em cadernos e participantes que não entraram no ajuste. Cada área desse tipo traz um aviso na página da prova.</p>
+  <p><b>Provas antigas:</b> a TRI só existe no ENEM a partir de 2009, e só esses anos estão aqui. Entre 2009 e 2016 o dia 1 foi Ciências Humanas e da Natureza e o dia 2 foi Linguagens e Matemática; de 2017 em diante, o dia 1 é Linguagens e Humanas. A página mostra a ordem de cada ano. Alguns anos têm limites próprios descritos no cartão de cada prova.</p>
+  <p><b>Limites:</b> vale para a aplicação regular (cadernos Azul, Amarelo, Branco, Rosa e Cinza, conforme o ano). Não vale para reaplicação, PPL nem provas adaptadas. Se escolher o caderno errado, a nota sai errada, sem aviso. O INEP não publica o assunto de cada questão, só a habilidade da Matriz de Referência; é isso que o raio-X mostra (anos sem habilidade nos dados não têm raio-X). A orientação de redação segue os níveis oficiais do INEP. "Ver" mostra o enunciado extraído da prova oficial, só texto (figuras, gráficos e fórmulas podem faltar); "Pesquisar" busca na internet pela frase da questão.</p>`;
+const ORD_COR=["AZUL","AMARELA","BRANCA","ROSA","CINZA"];
+function linksProva(m){
+  const curto={LC:"Linguagens",CH:"Humanas",CN:"Natureza",MT:"Matemática"};
+  const nomeDia=d=>Object.keys(m.areas).filter(a=>m.areas[a].dia===d).map(a=>curto[a]).join(" e ");
+  const L=m.links||{}; const dias=Object.keys(L).sort();
+  if(!dias.length) return `<a class="btn sm" href="${LINK_INEP}" target="_blank" rel="noopener">Abrir a página de provas do INEP</a>`;
+  return dias.map(d=>`<div style="margin-top:8px"><div class="hint" style="margin-bottom:4px"><b>Dia ${d}</b> · ${nomeDia(+d)}</div><div class="row">${Object.keys(L[d]).sort((x,y)=>ORD_COR.indexOf(x)-ORD_COR.indexOf(y)).map(c=>`<a class="btn sm" href="${L[d][c]}" target="_blank" rel="noopener"><span class="dot" style="background:${COR_HEX[c]||"#ccc"}"></span>${COR_NOME[c]||c}</a>`).join("")}</div></div>`).join("");
+}
+function resumoValidacao(){
+  let ex=0,es=0,no=0,rc=0; for(const m of MANIFEST) for(const a of Object.values(m.areas)){ if(a.classe==="EXATO"){ ex++; if(a.recuperado) rc++; } else if(a.classe==="ESTIMADO") es++; else no++; }
+  const t=ex+es+no;
+  return `<b>Como saber se confio na nota:</b> comparei o cálculo com a nota oficial de todos os participantes de cada prova. Em <b>${ex} de ${t}</b> combinações de prova e área a nota bate (a menos de 1 ponto, na prática igual à oficial); ${rc?`<b>${rc}</b> delas só bateram depois de recuperarmos parâmetros de itens que estão errados no arquivo oficial. `:""}${es?`<b>${es}</b> são estimativas com margem de erro. `:""}${no?`<b>${no}</b> não têm TRI (só acertos). `:""}O selo de cada prova mostra o resultado.`;
+}
+function andamento(m,st){
+  if(!st||!st.res) return "";
+  const as=Object.keys(m.areas), feitas=as.filter(a=>st.res[a]); if(!feitas.length) return "";
+  const curto={LC:"Linguagens",CH:"Humanas",CN:"Natureza",MT:"Matemática"};
+  const notas=feitas.map(a=>st.res[a].nota).filter(v=>v!==null); const rs=redSoma(st); const todas=[...notas,...(rs!==null?[rs]:[])];
+  const media=todas.length?todas.reduce((x,y)=>x+y,0)/todas.length:null;
+  const chips=as.map(a=>{ const v=st.res[a]; return v?`<span class="chipn ok">${curto[a]} <b>${v.nota!==null?fmt(v.nota)+(v.band?" ±"+Math.round(v.band):""):v.ac+"/"+v.tot+" acertos"}</b></span>`:`<span class="chipn">${curto[a]} <b>a corrigir</b></span>`; }).join("")+(rs!==null?`<span class="chipn ok">Redação <b>${rs}</b></span>`:"");
+  return `<div class="andamento"><b>${feitas.length===as.length?"Correção completa":"Correção em andamento"}</b> · ${feitas.length} de ${as.length} áreas<div class="row" style="gap:6px;margin-top:6px">${chips}</div>${media!==null?`<div class="hint" style="margin-top:6px">Média simples do que já foi corrigido: <b>${fmt(media)}</b>${todas.length<as.length+1?" (parcial)":""}</div>`:""}</div>`;
+}
+function selo(m){
+  const cs=Object.values(m.areas).map(a=>a.classe), tot=Object.keys(m.areas).length;
+  const ex=cs.filter(c=>c==="EXATO").length, es=cs.filter(c=>c==="ESTIMADO").length, no=tot-ex-es;
+  if(ex===tot) return `<span class="selo ok">TRI exata nas 4 áreas</span>`;
+  const p=[]; if(ex) p.push(ex+" exata"+(ex>1?"s":"")); if(es) p.push(es+" estimada"+(es>1?"s":"")); if(no) p.push(no+" sem TRI");
+  return `<span class="selo ${no?"no":"es"}">TRI: ${p.join(" · ")}</span>`;
+}
 function renderLobby(){
   const main=$("main"); let h=`<header class="hero"><h1>Correção <em>ENEM</em></h1>
-    <p class="sub">Escolha a prova, marque o cartão-resposta e veja a nota TRI estimada, o gabarito e onde melhorar. Roda no seu aparelho, sem internet e sem cadastro.</p></header>
-    <div class="strip"><span class="hint">Seu preenchimento fica salvo neste navegador. Perdeu tudo? Carregue o seu backup.</span><div class="row"><button class="btn sm" data-act="bkDown" type="button">Baixar backup</button><button class="btn sm" data-act="bkUp" type="button">Carregar backup</button></div></div>`;
-  for(const id in EXAMS){
-    const ex=EXAMS[id], st=store.estados[id];
-    const draft=Object.values(st.ans).some(v=>v.some(x=>x!==""))||Object.values(st.env).some(Boolean);
-    const corr=Object.values(st.env).filter(Boolean).length;
-    h+=`<section class="panel examcard"><div><h2>${ex.nome}</h2><p class="hint" style="margin:2px 0 0">${ex.desc}</p></div>
-      <div class="row"><button class="btn pri" type="button" data-act="abrirExam" data-ex="${id}">${draft?"Continuar o simulado":"Corrigir um simulado"}</button>
-      ${draft?`<span class="hint">${corr} de ${Object.keys(ex.areas).length} áreas corrigidas neste rascunho</span>`:""}</div>
-      <div><h3>Seu desempenho</h3>${dashHtml(id)}</div></section>`;
+    <p class="sub">Escolha a prova, faça o simulado e corrija aqui: nota TRI estimada, gabarito, enunciado e onde melhorar. Do ENEM 2025 ao 2009, só as provas que têm TRI.</p></header>
+    <div class="strip"><span class="hint">Seu preenchimento fica salvo neste navegador. Perdeu tudo? Carregue o seu backup.</span><div class="row"><button class="btn sm" data-act="bkDown" type="button">Baixar backup</button><button class="btn sm" data-act="bkUp" type="button">Carregar backup</button></div></div>
+    <div class="note info" style="margin-bottom:14px">${resumoValidacao()}</div>
+    <h2 style="margin:6px 0 10px">Escolha a prova</h2><div class="provas">`;
+  for(const m of MANIFEST){
+    const id="enem"+m.ano, st=store.estados[id];
+    const draft=st&&(Object.values(st.ans).some(v=>v.some(x=>x!==""))||Object.values(st.env).some(Boolean));
+    const nh=st?st.hist.length:0;
+    h+=`<section class="panel pcard"><div class="row" style="justify-content:space-between"><h3 style="margin:0;font-size:1.25rem">ENEM ${m.ano}</h3>${selo(m)}</div>
+      ${m.ordem_moderna?"":`<p class="hint" style="margin:6px 0 0">Dia 1: ${Object.keys(m.areas).filter(a=>m.areas[a].dia===1).map(a=>({LC:"Linguagens",CH:"Humanas",CN:"Natureza",MT:"Matemática"})[a]).join(" + ")} (ordem diferente das edições recentes)</p>`}
+      <div class="row" style="margin-top:12px"><button class="btn pri" type="button" data-act="abrirExam" data-ex="${id}">${draft?"Continuar o simulado":"Corrigir meu simulado"}</button></div>
+      <details class="fazer"><summary class="btn sm" style="margin-top:8px">Fazer a prova (PDF do INEP)</summary>${linksProva(m)}<p class="hint" style="margin:8px 0 0">Abre o caderno oficial em outra aba. Faça a prova no papel e depois corrija aqui, escolhendo a mesma cor do caderno.</p></details>
+      ${andamento(m,st)}
+      ${nh?`<p class="hint" style="margin:8px 0 0">${nh} simulado${nh>1?"s":""} salvo${nh>1?"s":""}</p>`:""}</section>`;
   }
-  h+=`<section class="panel"><p class="hint" style="margin:0">Mais provas entram aqui no futuro: cada uma aparece como um cartão acima.</p></section>
+  h+=`</div><section class="panel" id="dashSec" style="margin-top:8px"><h2>Seu desempenho</h2>${dashHtml(DASH_ESC,true)}</section>
     <details class="panel acc foot" style="padding:0"><summary>Como a nota é calculada e validação</summary><div class="acc-b">${TRANSP}</div></details>`;
   main.innerHTML=h;
 }
@@ -868,9 +980,9 @@ document.addEventListener("click",e=>{
     case "dash": { if(!jaSalvo()&&resumoGeral().n) salvarHist(); const d=$("dashSec"); if(d) d.scrollIntoView({block:"start"}); break; }
     case "novoSim": novoSim(); break;
     case "ser": { const s=t.dataset.s; if(CH_SEL.has(s)){ if(CH_SEL.size>1) CH_SEL.delete(s); } else CH_SEL.add(s); renderAll(); break; }
-    case "abrirHist": setExam(t.dataset.ex); abrirHist(+t.dataset.id); break;
+    case "abrirHist": { const id=t.dataset.ex; setExam(id); carregarDados(id).then(()=>{ setExam(id); abrirHist(+t.dataset.id); }); break; }
     case "delHist": { setExam(t.dataset.ex); apagarHist(+t.dataset.id,()=>renderAll()); break; }
-    case "abrirExam": setExam(t.dataset.ex); store.view="exam"; salvar(); renderAll(); window.scrollTo({top:0,behavior:"auto"}); break;
+    case "abrirExam": abrirExame(t.dataset.ex); break;
     case "bkDown": baixarBackup(); break;
     case "bkUp": $("bkFile").click(); break;
     case "limparTudo": if(confirm("Apagar TODO o preenchimento e o histórico deste navegador? Baixe o backup antes se quiser guardar.")){ store=validarStore(null); setExam(store.exam); try{localStorage.removeItem(KEY);}catch(_){} renderAll(); toast("Tudo limpo."); } break;
@@ -878,6 +990,7 @@ document.addEventListener("click",e=>{
 });
 document.addEventListener("change",e=>{
   const t=e.target; if(!t.dataset||!t.dataset.act) return;
+  if(t.dataset.act==="escopo"){ DASH_ESC=t.value; renderLobby(); initCharts(); return; }
   if(t.dataset.act==="soerros"){ document.querySelectorAll(`#tb-${t.dataset.a} tbody tr`).forEach(tr=>tr.classList.toggle("hidden",t.checked&&tr.dataset.er!=="1"&&!tr.classList.contains("enun-r"))); }
   if(t.dataset.act==="params"){ $("tw-"+t.dataset.a).classList.toggle("showpar",t.checked); }
 });
@@ -951,7 +1064,9 @@ function aplicaTema(t){ document.documentElement.setAttribute("data-theme",t); }
   $("tema").onclick=()=>{ t=t==="dark"?"light":"dark"; aplicaTema(t); try{localStorage.setItem(KEY_TEMA,t);}catch(_){} };
 })();
 
-carregar(); renderAll();
+carregar();
+if(store.view==="exam") abrirExame(store.exam); else renderAll();
+if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
 </html>

@@ -1,0 +1,954 @@
+{
+ "2009": {
+  "participantes": 10000416,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2554742,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2552782,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2434643,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2433933,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": false,
+  "sem_habilidade": false
+ },
+ "2010": {
+  "participantes": 13235488,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 3366012,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 3369212,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 3246006,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.976,
+    "pct_dentro_0_1": 99.975,
+    "n": 3244896,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": false,
+  "sem_habilidade": false
+ },
+ "2011": {
+  "participantes": 15693844,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.933,
+    "pct_dentro_0_1": 99.922,
+    "n": 3980081,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.944,
+    "pct_dentro_0_1": 99.929,
+    "n": 3981761,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.937,
+    "pct_dentro_0_1": 99.929,
+    "n": 3866702,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.93,
+    "pct_dentro_0_1": 99.928,
+    "n": 3865300,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": false,
+  "sem_habilidade": false
+ },
+ "2012": {
+  "participantes": 16614696,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.985,
+    "pct_dentro_0_1": 99.984,
+    "n": 4216367,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.99,
+    "pct_dentro_0_1": 99.984,
+    "n": 4217478,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 4090691,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.983,
+    "pct_dentro_0_1": 99.983,
+    "n": 4088847,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": false,
+  "sem_habilidade": false
+ },
+ "2013": {
+  "participantes": 20442976,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 5197369,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 5198621,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 5022664,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "ESTIMADO",
+    "pct_dentro_1": 99.829,
+    "pct_dentro_0_1": 99.407,
+    "n": 5020493,
+    "corr": 1.0,
+    "margem_p95": 0.1,
+    "constantes": [
+     500.02,
+     129.647
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": false,
+  "sem_habilidade": false
+ },
+ "2014": {
+  "participantes": 24265154,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 6158557,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 6160001,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 5971729,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 5968550,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": false,
+  "sem_habilidade": false
+ },
+ "2015": {
+  "participantes": 22752036,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 5746265,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 5747281,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.936,
+    "pct_dentro_0_1": 99.936,
+    "n": 5618625,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 5612871,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": false,
+  "sem_habilidade": false
+ },
+ "2016": {
+  "participantes": 23677572,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 5835303,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 5836493,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.936,
+    "pct_dentro_0_1": 99.936,
+    "n": 5688697,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 5683352,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": false,
+  "sem_habilidade": false
+ },
+ "2017": {
+  "participantes": 18268501,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 99.999,
+    "n": 4433922,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 4689450,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.925,
+    "pct_dentro_0_1": 99.925,
+    "n": 4697253,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 4433702,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": true,
+  "sem_habilidade": false
+ },
+ "2018": {
+  "participantes": 16097035,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.999,
+    "pct_dentro_0_1": 99.995,
+    "n": 3901771,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 4136358,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.903,
+    "pct_dentro_0_1": 99.903,
+    "n": 4144396,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 3901617,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": true,
+  "sem_habilidade": false
+ },
+ "2019": {
+  "participantes": 15259509,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 3707135,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 3914418,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.921,
+    "pct_dentro_0_1": 99.921,
+    "n": 3920308,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.976,
+    "pct_dentro_0_1": 99.775,
+    "n": 3706995,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": true,
+  "sem_habilidade": false
+ },
+ "2020": {
+  "participantes": 10696475,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2506501,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2657230,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.918,
+    "pct_dentro_0_1": 99.918,
+    "n": 2661957,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2506299,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": true,
+  "sem_habilidade": false
+ },
+ "2021": {
+  "participantes": 9242968,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2143398,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2258427,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.911,
+    "pct_dentro_0_1": 99.911,
+    "n": 2262660,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2143345,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": true,
+  "sem_habilidade": false
+ },
+ "2022": {
+  "participantes": 9690379,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2321881,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2454607,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2457219,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2321858,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": true,
+  "sem_habilidade": false
+ },
+ "2023": {
+  "participantes": 10989174,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2664779,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2805693,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2809118,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2664689,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": true,
+  "sem_habilidade": false
+ },
+ "2024": {
+  "participantes": 12336074,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2997555,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 3154708,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.999,
+    "pct_dentro_0_1": 99.999,
+    "n": 3159056,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 2997416,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": true,
+  "sem_habilidade": false
+ },
+ "2025": {
+  "participantes": 13422666,
+  "areas": {
+   "CN": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.998,
+    "pct_dentro_0_1": 99.998,
+    "n": 3176181,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.144,
+     113.102
+    ]
+   },
+   "CH": {
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
+    "n": 3360285,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     501.489,
+     112.31
+    ]
+   },
+   "LC": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.998,
+    "pct_dentro_0_1": 99.998,
+    "n": 3366699,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     499.978,
+     108.086
+    ]
+   },
+   "MT": {
+    "classe": "EXATO",
+    "pct_dentro_1": 99.997,
+    "pct_dentro_0_1": 99.997,
+    "n": 3176102,
+    "corr": null,
+    "margem_p95": null,
+    "constantes": [
+     500.02,
+     129.646
+    ]
+   }
+  },
+  "avisos": [],
+  "ordem_moderna": true,
+  "sem_habilidade": false
+ }
+}
