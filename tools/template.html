@@ -176,6 +176,16 @@ tr.fora td{color:var(--muted)}
 .selo{font-size:.78rem;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--greenbg);color:var(--green);white-space:nowrap}
 .selo.es{background:var(--warnbg);color:var(--warn)}.selo.no{background:var(--badbg);color:var(--bad)}
 details.fazer>summary{list-style:none;cursor:pointer;display:inline-flex}details.fazer>summary::-webkit-details-marker{display:none}
+.retomar{border:2px solid var(--green);background:var(--card);border-radius:20px;padding:18px 18px 16px;margin-bottom:16px;box-shadow:var(--shadow)}
+.retomar .kick{font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--green);margin:0 0 10px}
+.retomar .rit{padding:12px 0;border-top:1px solid var(--line)}
+.retomar .rit:first-of-type{border-top:0;padding-top:0}
+.retomar h3{margin:0;font-size:1.3rem}
+.retomar .segs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:10px 0 8px}
+.retomar .segs i{height:8px;border-radius:99px;background:var(--line)}
+.retomar .segs i.ok{background:var(--green)}.retomar .segs i.part{background:var(--blue)}
+.retomar .btn.pri{width:100%;margin-top:12px}
+.retomar .mais{margin:8px 0 0}
 .andamento{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--bluebg);font-size:.9rem}
 .chipn{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:.8rem;color:var(--muted)}
 .chipn b{color:var(--ink)}.chipn.ok{border-color:var(--green)}.chipn.ok b{color:var(--green)}
@@ -900,6 +910,30 @@ function resumoValidacao(){
   const t=ex+es+no;
   return `<b>Como saber se confio na nota:</b> comparei o cálculo com a nota oficial de todos os participantes de cada prova. Em <b>${ex} de ${t}</b> combinações de prova e área a nota bate (a menos de 1 ponto, na prática igual à oficial); ${rc?`<b>${rc}</b> delas só bateram depois de recuperarmos parâmetros de itens que estão errados no arquivo oficial. `:""}${es?`<b>${es}</b> são estimativas com margem de erro. `:""}${no?`<b>${no}</b> não têm TRI (só acertos). `:""}O selo de cada prova mostra o resultado.`;
 }
+function progressoSim(m,st){
+  if(!st) return null;
+  const as=Object.keys(m.areas), res=st.res||{};
+  const marc=a=>((st.ans&&st.ans[a])||[]).filter(x=>x!==""&&x!=="-").length;
+  const feitas=as.filter(a=>res[a]), rasc=as.filter(a=>!res[a]&&marc(a)>0);
+  if(!feitas.length&&!rasc.length) return null;
+  if(feitas.length===as.length) return null;   // completo: não é "em andamento"
+  return {as,res,marc,feitas,rasc};
+}
+function retomarHtml(){
+  const curto={LC:"Linguagens",CH:"Humanas",CN:"Natureza",MT:"Matemática"};
+  let lista=MANIFEST.map(m=>({m,pr:progressoSim(m,store.estados["enem"+m.ano])})).filter(x=>x.pr);
+  if(!lista.length) return {html:"",ids:new Set()};
+  lista.sort((x,y)=>(("enem"+y.m.ano)===store.exam)-(("enem"+x.m.ano)===store.exam)||y.m.ano-x.m.ano);   // o último aberto vai primeiro
+  const vis=lista.slice(0,3), resto=lista.length-vis.length;
+  const itens=vis.map(({m,pr})=>{
+    const {as,res,marc,feitas,rasc}=pr;
+    const segs=as.map(a=>`<i class="${res[a]?"ok":marc(a)>0?"part":""}"></i>`).join("");
+    const chips=as.map(a=>{ const v=res[a]; return v?`<span class="chipn ok">${curto[a]} <b>${v.nota!==null?fmt(v.nota):v.ac+"/"+v.tot}</b></span>`:marc(a)>0?`<span class="chipn">${curto[a]} <b>${marc(a)}/45</b></span>`:`<span class="chipn">${curto[a]} <b>a começar</b></span>`; }).join("");
+    const txt=feitas.length?`${feitas.length} de ${as.length} áreas corrigidas`+(rasc.length?` · ${rasc.length} com marcações salvas`:""):`${rasc.length} de ${as.length} áreas com marcações salvas`;
+    return `<div class="rit"><h3>ENEM ${m.ano}</h3><div class="segs" aria-hidden="true">${segs}</div><div class="hint" style="margin:0 0 8px">${txt}</div><div class="row" style="gap:6px">${chips}</div><button class="btn pri" type="button" data-act="abrirExam" data-ex="enem${m.ano}">Continuar corrigindo</button></div>`;
+  }).join("");
+  return {html:`<section class="retomar" aria-label="Simulado em andamento"><p class="kick">Simulado em andamento</p>${itens}${resto?`<p class="hint mais">Mais ${resto} em andamento nos cartões abaixo.</p>`:""}</section>`,ids:new Set(vis.map(x=>"enem"+x.m.ano))};
+}
 function andamento(m,st){
   if(!st) return "";
   const as=Object.keys(m.areas), res=st.res||{}, feitas=as.filter(a=>res[a]);
@@ -923,8 +957,9 @@ function selo(m){
   return `<span class="selo ${no?"no":"es"}">TRI: ${p.join(" · ")}</span>`;
 }
 function renderLobby(){
-  const main=$("main"); let h=`<header class="hero"><h1>Correção <em>ENEM</em></h1>
+  const ret=retomarHtml(); const main=$("main"); let h=`<header class="hero"><h1>Correção <em>ENEM</em></h1>
     <p class="sub">Escolha a prova, faça o simulado e corrija aqui: nota TRI estimada, gabarito, enunciado e onde melhorar. Do ENEM 2025 ao 2009, só as provas que têm TRI.</p></header>
+    ${ret.html}
     <div class="strip"><span class="hint">Seu preenchimento fica salvo neste navegador. Perdeu tudo? Carregue o seu backup.</span><div class="row"><button class="btn sm" data-act="bkDown" type="button">Baixar backup</button><button class="btn sm" data-act="bkUp" type="button">Carregar backup</button></div></div>
     <div class="note info" style="margin-bottom:14px">${resumoValidacao()}</div>
     <h2 style="margin:6px 0 10px">Escolha a prova</h2><div class="provas">`;
@@ -936,7 +971,7 @@ function renderLobby(){
       ${m.ordem_moderna?"":`<p class="hint" style="margin:6px 0 0">Dia 1: ${Object.keys(m.areas).filter(a=>m.areas[a].dia===1).map(a=>({LC:"Linguagens",CH:"Humanas",CN:"Natureza",MT:"Matemática"})[a]).join(" + ")} (ordem diferente das edições recentes)</p>`}
       <div class="row" style="margin-top:12px"><button class="btn pri" type="button" data-act="abrirExam" data-ex="${id}">${draft?"Continuar o simulado":"Corrigir meu simulado"}</button></div>
       <details class="fazer"><summary class="btn sm" style="margin-top:8px">Fazer a prova (PDF do INEP)</summary>${linksProva(m)}<p class="hint" style="margin:8px 0 0">Abre o caderno oficial em outra aba. Faça a prova no papel e depois corrija aqui, escolhendo a mesma cor do caderno.</p></details>
-      ${andamento(m,st)}
+      ${ret.ids.has(id)?"":andamento(m,st)}
       ${nh?`<p class="hint" style="margin:8px 0 0">${nh} simulado${nh>1?"s":""} salvo${nh>1?"s":""}</p>`:""}</section>`;
   }
   h+=`</div><section class="panel" id="dashSec" style="margin-top:8px"><h2>Seu desempenho</h2>${dashHtml(DASH_ESC,true)}</section>
