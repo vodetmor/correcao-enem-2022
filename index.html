@@ -171,14 +171,33 @@ tr.fora td{color:var(--muted)}
 .enun li.gab{border-color:var(--ok);background:var(--okbg)}
 .enun li.voce{border-color:var(--bad);background:var(--badbg)}
 
+/* seletor de dia */
+.seg{display:flex;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:4px;gap:4px;margin-bottom:16px}
+.seg button{flex:1;appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;border-radius:999px;padding:8px 12px;cursor:pointer;min-height:48px;line-height:1.2}
+.seg button small{display:block;font-weight:500;font-size:.78rem}
+.seg button[aria-pressed=true]{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.seg button:focus-visible{outline:3px solid #7fa6ff;outline-offset:2px}
 /* redação */
-.red-row{border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px;background:var(--card)}
-.red-row .rt{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.red-row .rt b{font-size:.98rem}
-.fb{margin-top:10px;border-radius:12px;padding:10px 14px;background:var(--soft);font-size:.92rem}
-.fb p{margin:0 0 6px}
-.fb .lv{font-weight:700}
-.fb .up{border-left:3px solid var(--green);padding-left:10px;margin-top:8px}
+.redgrid{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:900px){.redgrid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:start}.redfbw{position:sticky;top:130px}}
+.rrow{border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px;background:var(--card);cursor:pointer}
+.rrow{scroll-margin-top:118px}
+.rrow.on{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+.rrow .rt{font-weight:600;font-size:.92rem;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.rrow .rt span+span{color:var(--green);font-variant-numeric:tabular-nums}
+.rrow .inl{display:none}
+@media(max-width:899px){.rrow.on .inl{display:block;margin-top:10px}.redfbw{display:none}}
+.lvls{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.lv{appearance:none;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:6px 0;font:inherit;font-weight:700;font-size:.9rem;cursor:pointer;min-height:40px;font-variant-numeric:tabular-nums}
+.lv:hover{border-color:var(--green)}
+.lv[aria-pressed=true]{background:var(--green);border-color:var(--green);color:var(--onbtn)}
+.lv:focus-visible{outline:3px solid #7fa6ff;outline-offset:2px}
+.redfb{border:1px solid var(--line);border-radius:16px;padding:14px 16px;background:var(--card)}
+.redfb h3{margin:0 0 6px;font-size:1rem}
+.redfb p{font-size:.92rem;margin:0 0 8px}
+.redfb .why{border-left:3px solid var(--blue);padding-left:10px}
+.redfb .up{border-left:3px solid var(--green);padding-left:10px}
+.redfb .tip{border-left:3px solid var(--warn);padding-left:10px}
 .foco{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
 .foco span{background:var(--warnbg);color:var(--warn);border-radius:999px;padding:3px 12px;font-size:.88rem;font-weight:600}
 
@@ -446,9 +465,13 @@ function selRow(d){
 }
 
 /* ---------- aba de área ---------- */
+function diaSeg(d){
+  const nomes={1:"Linguagens e Humanas",2:"Natureza e Matemática"};
+  return `<div class="seg" role="group" aria-label="Dia da prova">${[1,2].map(x=>`<button type="button" aria-pressed="${x===d}" data-act="dia" data-d="${x}">Dia ${x}<small>${nomes[x]}</small></button>`).join("")}</div>`;
+}
 function renderAreaPane(a){
   const d=AREAS[a].dia, base=AREAS[a].base, main=$("main");
-  let h=selRow(d);
+  let h=diaSeg(d)+selRow(d);
   if(!diaLiberado(d)){
     h+=`<section class="panel"><div class="trava">🔒 ${!S.cor[d]?"Escolha a cor do caderno acima para liberar o cartão.":"Escolha o idioma (inglês ou espanhol) acima para liberar o cartão."}</div></section>`;
     main.innerHTML=h; return;
@@ -595,29 +618,37 @@ function corrigir(a){
 }
 
 /* ---------- redação ---------- */
+let REDFOCO=0;
+function posRed(y){ if(innerWidth<900){ const r=document.querySelector(".rrow.on"); if(r) r.scrollIntoView({block:"start"}); } else window.scrollTo(0,y); }
 function fbHtml(i,s){
   const R=DATA.red.comp[i], N=DATA.red.nivel;
+  if(s===null) return `<div class="redfb"><h3>C${i+1} · ${R.t}</h3><p class="hint">Toque numa nota ao lado para ver por que o corretor provavelmente deu essa nota e como subir.</p></div>`;
   const nx=s<200?s+40:null;
-  let h=`<div class="fb"><p><span class="lv">${N[String(s)]} (${s})</span><br>${esc(R.n[String(s)])}</p>`;
-  if(nx!==null) h+=`<div class="up"><p><b>Para chegar a ${nx}:</b> ${esc(R.n[String(nx)])}</p><p><b>Como melhorar:</b> ${esc(R.dica)}</p></div>`;
-  else h+=`<div class="up"><p><b>Nível máximo.</b> Para manter: ${esc(R.dica)}</p></div>`;
-  return h+`</div>`;
+  let h=`<div class="redfb"><h3>C${i+1} · ${R.t} · ${s} pontos (${N[String(s)].toLowerCase()})</h3>
+    <p class="why"><b>Por que provavelmente ${s} (estimativa):</b> ${esc(R.n[String(s)])}</p>`;
+  if(nx!==null) h+=`<p class="up"><b>O que costuma separar do nível ${nx}:</b> ${esc(R.n[String(nx)])}</p>`;
+  else h+=`<p class="up"><b>Nível máximo.</b> Para manter nesta competência, siga a dica abaixo.</p>`;
+  h+=`<p class="tip" style="margin:0"><b>Como melhorar:</b> ${esc(R.dica)}</p></div>`;
+  return h;
 }
 function renderRedPane(){
   const main=$("main"), soma=redSoma();
-  let h=`<section class="panel"><h2>Redação</h2>
-    <p class="hint" style="margin:6px 0 12px">Fez a redação? Lance as 5 notas (0 a 200, de 40 em 40) dadas por quem corrigiu o seu texto (professor, corretor ou o GPT). O app mostra em que nível você está em cada competência e o que fazer para subir, segundo os critérios oficiais do INEP.</p><div id="redG">`;
+  let h=`<section class="panel"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Redação</h2>
+    <p class="hint" style="margin:4px 0 12px;max-width:620px">Lance a nota de cada competência dada por quem corrigiu o seu texto (professor, corretor ou o GPT). Ao lado, você vê o que cada nota significa e como subir.</p></div>
+    <div class="tile" style="min-width:150px"><span>Nota da redação</span><b id="redSum">${soma!==null?soma:"–"}</b><span>de 1000</span></div></div>
+    <div class="note info" style="margin-bottom:12px">Estimativa: o INEP não publica o motivo de cada nota. Mostro o que o critério oficial de cada nível diz, que é o que provavelmente levou o corretor ou a IA àquela nota. O motivo real está no comentário de quem corrigiu.</div>
+    <div class="redgrid"><div id="redlist">`;
   for(let i=0;i<5;i++){
-    h+=`<div class="red-row"><div class="rt"><b>Competência ${i+1} · ${DATA.red.comp[i].t}</b><select id="rc${i}" data-act="red" data-i="${i}" aria-label="Nota da competência ${i+1}"><option value="">sem nota</option>${NIVEIS.map(v=>`<option value="${v}" ${S.red[i]===v?"selected":""}>${v}</option>`).join("")}</select></div><div id="fb${i}">${S.red[i]!==null?fbHtml(i,S.red[i]):""}</div></div>`;
+    h+=`<div class="rrow ${REDFOCO===i?"on":""}" data-act="comp" data-i="${i}"><div class="rt"><span style="color:var(--ink)">C${i+1} · ${DATA.red.comp[i].t}</span><span>${S.red[i]!==null?S.red[i]:"–"}</span></div><div class="lvls" role="group" aria-label="Nota da competência ${i+1}">${NIVEIS.map(v=>`<button type="button" class="lv" aria-pressed="${S.red[i]===v}" data-act="nota" data-i="${i}" data-v="${v}">${v}</button>`).join("")}</div><div class="inl">${REDFOCO===i?fbHtml(i,S.red[i]):""}</div></div>`;
   }
-  h+=`</div><div class="tile" style="max-width:280px"><span>Nota da redação (0 a 1000)</span><b id="redSum">${soma!==null?soma:"–"}</b></div><div id="foco"></div>
-    <p class="hint" style="margin-top:12px">Fonte dos critérios: ${esc(DATA.red.fonte)}</p></section>`;
+  h+=`<div id="foco"></div></div><div class="redfbw" id="redfb">${fbHtml(REDFOCO,S.red[REDFOCO])}</div></div>
+    <p class="hint" style="margin:12px 0 0">Fonte dos critérios: ${esc(DATA.red.fonte)}</p></section>`;
   main.innerHTML=h; renderFoco();
 }
 function renderFoco(){
   const el=$("foco"); if(!el) return;
   const feitos=S.red.map((s,i)=>({s,i})).filter(x=>x.s!==null&&x.s<200).sort((a,b)=>a.s-b.s||a.i-b.i);
-  el.innerHTML=feitos.length&&S.red.every(x=>x!==null)?`<p class="hint" style="margin:14px 0 0"><b>Por onde começar:</b> as competências mais baixas dão mais ganho.</p><div class="foco">${feitos.slice(0,3).map(x=>`<span>C${x.i+1} · ${DATA.red.comp[x.i].t} (${x.s})</span>`).join("")}</div>`:"";
+  el.innerHTML=feitos.length&&S.red.every(x=>x!==null)?`<p class="hint" style="margin:10px 0 0"><b>Por onde começar:</b> as competências mais baixas dão mais ganho.</p><div class="foco">${feitos.slice(0,3).map(x=>`<span>C${x.i+1} · ${DATA.red.comp[x.i].t} (${x.s})</span>`).join("")}</div>`:"";
 }
 
 /* ---------- resultado, histórico e dashboard ---------- */
@@ -798,6 +829,9 @@ document.addEventListener("click",e=>{
   const a=t.dataset.a, act=t.dataset.act;
   switch(act){
     case "tab": fecharModal(); irAba(t.dataset.t); break;
+    case "dia": { const d=+t.dataset.d, atual=AREAS[S.tab]&&AREAS[S.tab].dia; if(atual!==d) irAba(Object.keys(AREAS).find(x=>AREAS[x].dia===d)); break; }
+    case "nota": { const i=+t.dataset.i, v=+t.dataset.v; S.red[i]=S.red[i]===v?null:v; REDFOCO=i; salvar(); const y=window.scrollY; renderRedPane(); renderTopo(); posRed(y); break; }
+    case "comp": { REDFOCO=+t.dataset.i; const y=window.scrollY; renderRedPane(); posRed(y); break; }
     case "cor": S.cor[+t.dataset.d]=t.dataset.c; salvar(); renderPane(); break;
     case "lang": S.lang=+t.dataset.l; salvar(); renderPane(); break;
     case "ask": perguntarCorrigir(a); break;
@@ -826,10 +860,6 @@ document.addEventListener("click",e=>{
 });
 document.addEventListener("change",e=>{
   const t=e.target; if(!t.dataset||!t.dataset.act) return;
-  if(t.dataset.act==="red"){
-    const i=+t.dataset.i; S.red[i]=t.value===""?null:+t.value; salvar();
-    $("fb"+i).innerHTML=S.red[i]!==null?fbHtml(i,S.red[i]):""; const so=redSoma(); $("redSum").textContent=so!==null?so:"–"; renderFoco(); renderTopo(); return;
-  }
   if(t.dataset.act==="soerros"){ document.querySelectorAll(`#tb-${t.dataset.a} tbody tr`).forEach(tr=>tr.classList.toggle("hidden",t.checked&&tr.dataset.er!=="1"&&!tr.classList.contains("enun-r"))); }
   if(t.dataset.act==="params"){ $("tw-"+t.dataset.a).classList.toggle("showpar",t.checked); }
 });
