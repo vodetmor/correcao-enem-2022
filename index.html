@@ -708,7 +708,7 @@ function sheetInner(a,r,dif=true){
 }
 function renderAreaPane(a){
   const d=AREAS[a].dia, base=AREAS[a].base, main=$("main");
-  let h=`<div class="row" style="margin-bottom:10px"><button class="btn sm" type="button" data-act="simSetup" data-ex="${EX.id}">⏱ Simulado com cronômetro e PDF</button></div>`+diaSeg(d)+avisoOrdem()+avisoArea(a)+selRow(d);
+  let h=`<div class="row" style="margin-bottom:10px"><button class="btn sm" type="button" data-act="simSetup" data-ex="${EX.id}">⏱ ${simBotaoTxt()}</button>${simFalta()?`<span class="hint">${simFalta().feitas.map(x=>AREA_CURTO[x]).join(" e ")} ficam como estão; a nova nota entra na média.</span>`:""}</div>`+diaSeg(d)+avisoOrdem()+avisoArea(a)+selRow(d);
   if(!diaLiberado(d)){
     h+=`<section class="panel"><div class="trava">🔒 ${!S.cor[d]?"Escolha a cor do caderno acima para liberar o cartão.":"Escolha o idioma (inglês ou espanhol) acima para liberar o cartão."}</div></section>`;
     main.innerHTML=h; return;
@@ -845,17 +845,38 @@ function simMinPadrao(esc){ return esc[0]==="d"?SIM_DIA_MIN:SIM_AREA_MIN; }
 function simUrl(d){ const L=(EX.info.links||{})[d]; return L&&S.cor[d]?L[S.cor[d]]||null:null; }
 function fmtDur(sg){ sg=Math.max(0,Math.floor(sg)); const h=Math.floor(sg/3600), m=Math.floor(sg%3600/60), x=sg%60, d=n=>String(n).padStart(2,"0"); return `${d(h)}:${d(m)}:${d(x)}`; }
 function fmtMin(m){ return Math.floor(m/60)+"h"+(m%60?String(m%60).padStart(2,"0"):""); }
+/* estado parcial: áreas já corrigidas x o que falta */
+function simFalta(){
+  const todas=Object.keys(AREAS), feitas=todas.filter(a=>S.env[a]), pend=todas.filter(a=>!S.env[a]&&!S.ans[a].some(x=>x!==""));
+  if(!feitas.length||!pend.length) return null;
+  const d=AREAS[pend[0]].dia, doDia=todas.filter(a=>AREAS[a].dia===d);
+  const esc=doDia.every(a=>pend.includes(a))?"d"+d:"a:"+pend[0];
+  return {feitas,pend,esc};
+}
+function simBotaoTxt(){ const fl=simFalta(); return fl?"Fazer o que falta com cronômetro: "+fl.pend.map(x=>AREA_CURTO[x]).join(" + "):"Simulado com cronômetro e PDF"; }
+function simNotaDe(a){ const r=analisarC(a); return r&&r.pronto?(r.nota!==null?fmt(r.nota):r.acertos+"/"+r.validas.length):"–"; }
 function abrirSetup(){
   if(!EX.dados) return;
   const dias=[...new Set(Object.keys(AREAS).map(a=>AREAS[a].dia))].sort();
-  if(!SIMCFG||SIMCFG.ex!==EX.id){ const esc="d"+dias[0]; SIMCFG={ex:EX.id,esc,min:simMinPadrao(esc),edit:false,auto:true}; }
+  if(!SIMCFG||SIMCFG.ex!==EX.id){ const fl=simFalta(), esc=fl?fl.esc:"d"+dias[0]; SIMCFG={ex:EX.id,esc,min:simMinPadrao(esc),edit:false,auto:true}; }
   renderSetup();
+}
+function simAvisoParcial(c){
+  const ar=simAreasDe(c.esc), feitas=Object.keys(AREAS).filter(a=>S.env[a]), mantem=feitas.filter(a=>!ar.includes(a)), refaz=ar.filter(a=>S.env[a]||S.ans[a].some(x=>x!==""));
+  if(!feitas.length&&!refaz.length) return "";
+  let h=`<div class="note info" style="margin:0 0 12px">`;
+  if(feitas.length) h+=`<b>Você já corrigiu:</b> ${feitas.map(a=>AREA_CURTO[a]+" "+simNotaDe(a)).join(", ")}. `;
+  const fl=simFalta(); if(fl) h+=`<b>Falta:</b> ${fl.pend.map(a=>AREA_CURTO[a]).join(" e ")}. `;
+  if(mantem.length&&!refaz.length) h+=`Este simulado <b>não mexe</b> em ${mantem.map(a=>AREA_CURTO[a]).join(" e ")}: as notas ficam como estão e a nova nota entra na sua média.`;
+  else if(refaz.length) h+=`<b>Atenção:</b> ${refaz.map(a=>AREA_CURTO[a]).join(" e ")} já ${refaz.length>1?"têm":"tem"} preenchimento. Refazer substitui o atual; ele fica guardado no histórico ao concluir e volta se você descartar.`;
+  return h+`</div>`;
 }
 function renderSetup(){
   const c=SIMCFG, d=simDiaDe(c.esc), ar=simAreasDe(c.esc), tl=ar.some(a=>AREAS[a].lang);
   const dias=[...new Set(Object.keys(AREAS).map(a=>AREAS[a].dia))].sort();
   const opt=(v,t,sub)=>`<button type="button" class="chip" aria-pressed="${c.esc===v}" data-act="simEsc" data-v="${v}"><span>${t}</span><small>${sub}</small></button>`;
   let h=`<h3>Simulado ${EX.nome}</h3><p class="hint" style="margin:4px 0 12px">O caderno oficial do INEP abre ao lado do seu cartão-resposta. O tempo corre mesmo se você recarregar a página, como na prova.</p>
+    ${simAvisoParcial(c)}
     <span class="lbl">Dia inteiro</span><div class="simgrid">${dias.map(x=>{ const aa=Object.keys(AREAS).filter(k=>AREAS[k].dia===x); return opt("d"+x,`Dia ${x}`,aa.map(k=>AREA_CURTO[k]).join(" + ")+" · "+aa.length*45+" questões"); }).join("")}</div>
     <span class="lbl">Só uma área</span><div class="simgrid">${Object.keys(AREAS).map(a=>opt("a:"+a,AREA_CURTO[a],"45 questões · dia "+AREAS[a].dia)).join("")}</div>
     <div class="simcols"><div><span class="lbl">Caderno do dia ${d} (cor da capa)</span><div class="row" style="margin:6px 0 14px">${(CORES[d]||[]).map(k=>`<button type="button" class="chip" aria-pressed="${S.cor[d]===k}" data-act="simCor" data-d="${d}" data-c="${k}"><span class="dot" style="background:${COR_HEX[k]||"#ccc"}"></span>${COR_NOME[k]||k}</button>`).join("")}</div></div>
@@ -880,15 +901,16 @@ function simConfirmar(){
       <li>${c.auto?"Quando o tempo zerar, o cartão trava e <b>é corrigido automaticamente</b>.":"Quando o tempo zerar, você continua no excedente e corrige quando quiser."}</li>
       <li>Você pode encerrar antes pelo botão <b>Encerrar e corrigir</b>.</li>
     </ul>
-    ${simRascunho()?`<div class="note info" style="margin-top:12px">Já existe preenchimento nesta prova. Ele fica guardado: se você descartar o simulado, ele volta para o cartão; se concluir, vai para o histórico. O simulado novo começa com o cartão limpo e terá o próprio registro no histórico e no dashboard.</div>`:""}
+    ${simAvisoParcial(c)}
     <p class="hint" style="margin:12px 0 0">Separe o tempo, deixe papel e caneta à mão e feche o que puder distrair.</p>
     <div class="modal-act"><button class="btn" type="button" data-act="simVoltar">Voltar</button><button class="btn pri" type="button" data-act="simStart">Estou pronto, começar</button></div>`);
   $("modalCard").classList.add("wide");
 }
 function simIniciar(){
   const c=SIMCFG, ar=simAreasDe(c.esc), min=Math.max(5,Math.min(600,Math.round(+c.min)||simMinPadrao(c.esc)));
-  const antes=simRascunho()?JSON.parse(JSON.stringify({cor:S.cor,lang:S.lang,ans:S.ans,env:S.env,red:S.red})):null;
-  for(const a in AREAS){ S.ans[a]=Array(45).fill(""); S.env[a]=false; } S.red=[null,null,null,null,null];
+  const sobre=ar.some(a=>S.env[a]||S.ans[a].some(x=>x!==""));
+  const antes=sobre?JSON.parse(JSON.stringify({cor:S.cor,lang:S.lang,ans:S.ans,env:S.env,red:S.red})):null;
+  ar.forEach(a=>{ S.ans[a]=Array(45).fill(""); S.env[a]=false; });
   const agora=Date.now(); S.tab=ar[0];
   store.sim={ex:EX.id,areas:ar,ini:agora,fim:agora+min*60000,dur:min*60,auto:!!c.auto,lado:"E",modo:innerWidth<800?"cartao":"div",cron:{est:"dig",oc:false},pct:78,z:1,antes};
   fecharModal(); salvar(); simMontar();
@@ -990,6 +1012,7 @@ function simFinalizar(auto){
   renderAll(); window.scrollTo({top:0,behavior:"auto"});
   let ac=0,er=0,br=0,tot=0; const notas=ar.map(a=>{ const r=analisarC(a); ac+=r.acertos; er+=r.erros; br+=r.brancos; tot+=r.validas.length; return `<div class="stat"><b>${r.nota!==null?fmt(r.nota):r.acertos+"/"+r.validas.length}</b><span>${AREAS[a].nome}</span></div>`; }).join("");
   abrirModal(`<h3>${auto?"Tempo esgotado: simulado corrigido":"Simulado corrigido"}</h3><p class="hint" style="margin:4px 0 10px">Tempo usado: <b>${fmtDur(usado)}</b> · salvo no histórico como “${esc(nomeHist)}”</p><div class="stats pan">${notas}</div><div style="margin-top:12px">${panTiles(ac,er,br,tot)}</div>
+    ${(()=>{ const g=resumoGeral(); return g.media!==null?`<p class="hint" style="margin:12px 0 0">Sua média simples agora: <b>${fmt(g.media)}</b> (${g.n} de ${g.total} notas${g.completo?"":", faltam "+(g.total-g.n)}).</p>`:""; })()}
     <div class="modal-act"><button class="btn pri" type="button" data-act="fechar">Ver minha correção</button><button class="btn" type="button" data-act="tab" data-t="RES">Ver panorama por dificuldade</button></div>`);
 }
 function simPerguntarFim(){
