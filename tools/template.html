@@ -401,7 +401,7 @@ function validarStore(o){
     if(EXAMS[o.exam]) st.exam=o.exam;
     if(o.view==="exam") st.view="exam";
     const sm=o.sim; if(sm&&typeof sm==="object"&&EXAMS[sm.ex]&&Array.isArray(sm.areas)&&Number.isFinite(sm.fim)&&Number.isFinite(sm.dur)){
-      const ar=sm.areas.filter(a=>EXAMS[sm.ex].areas[a]); if(ar.length){ const cr=sm.cron||{}; st.sim={ex:sm.ex,areas:ar,fim:sm.fim,ini:Number(sm.ini)||sm.fim-sm.dur*1000,dur:sm.dur,auto:!!sm.auto,lado:sm.lado==="D"?"D":"E",modo:["div","pdf","cartao"].includes(sm.modo)?sm.modo:"div",cron:{est:["dig","rel","qua"].includes(cr.est)?cr.est:"dig",oc:!!cr.oc},pct:Math.max(20,Math.min(80,Number(sm.pct)||78)),z:Math.max(.6,Math.min(1.6,Number(sm.z)||1))}; }
+      const ar=sm.areas.filter(a=>EXAMS[sm.ex].areas[a]); if(ar.length){ const cr=sm.cron||{}; st.sim={ex:sm.ex,areas:ar,fim:sm.fim,ini:Number(sm.ini)||sm.fim-sm.dur*1000,dur:sm.dur,auto:!!sm.auto,lado:sm.lado==="D"?"D":"E",modo:["div","pdf","cartao"].includes(sm.modo)?sm.modo:"div",cron:{est:["dig","rel","qua"].includes(cr.est)?cr.est:"dig",oc:!!cr.oc},pct:Math.max(20,Math.min(80,Number(sm.pct)||78)),z:Math.max(.6,Math.min(1.6,Number(sm.z)||1))}; if(sm.antes&&typeof sm.antes==='object'){ const x=novoEstado(EXAMS[sm.ex]); lerCampos(sm.antes,EXAMS[sm.ex],x); st.sim.antes={cor:x.cor,lang:x.lang,ans:x.ans,env:x.env,red:x.red}; } }
     }
     for(const id in EXAMS) st.estados[id]=validar(o.estados&&o.estados[id],EXAMS[id]);
   } else for(const id in EXAMS) st.estados[id]=novoEstado(EXAMS[id]);
@@ -880,17 +880,17 @@ function simConfirmar(){
       <li>${c.auto?"Quando o tempo zerar, o cartão trava e <b>é corrigido automaticamente</b>.":"Quando o tempo zerar, você continua no excedente e corrige quando quiser."}</li>
       <li>Você pode encerrar antes pelo botão <b>Encerrar e corrigir</b>.</li>
     </ul>
-    ${simRascunho()?`<div class="note info" style="margin-top:12px">Já existe preenchimento nesta prova. ${jaSalvo()?"Ele já está no histórico.":"Ele será guardado no histórico antes de começar."} O simulado novo começa com o cartão limpo e terá o próprio registro no histórico e no dashboard.</div>`:""}
+    ${simRascunho()?`<div class="note info" style="margin-top:12px">Já existe preenchimento nesta prova. Ele fica guardado: se você descartar o simulado, ele volta para o cartão; se concluir, vai para o histórico. O simulado novo começa com o cartão limpo e terá o próprio registro no histórico e no dashboard.</div>`:""}
     <p class="hint" style="margin:12px 0 0">Separe o tempo, deixe papel e caneta à mão e feche o que puder distrair.</p>
     <div class="modal-act"><button class="btn" type="button" data-act="simVoltar">Voltar</button><button class="btn pri" type="button" data-act="simStart">Estou pronto, começar</button></div>`);
   $("modalCard").classList.add("wide");
 }
 function simIniciar(){
   const c=SIMCFG, ar=simAreasDe(c.esc), min=Math.max(5,Math.min(600,Math.round(+c.min)||simMinPadrao(c.esc)));
-  if(simRascunho()&&!jaSalvo()) salvarHist(nomeProximo()+" (antes do cronometrado)",true);
+  const antes=simRascunho()?JSON.parse(JSON.stringify({cor:S.cor,lang:S.lang,ans:S.ans,env:S.env,red:S.red})):null;
   for(const a in AREAS){ S.ans[a]=Array(45).fill(""); S.env[a]=false; } S.red=[null,null,null,null,null];
   const agora=Date.now(); S.tab=ar[0];
-  store.sim={ex:EX.id,areas:ar,ini:agora,fim:agora+min*60000,dur:min*60,auto:!!c.auto,lado:"E",modo:innerWidth<800?"cartao":"div",cron:{est:"dig",oc:false},pct:78,z:1};
+  store.sim={ex:EX.id,areas:ar,ini:agora,fim:agora+min*60000,dur:min*60,auto:!!c.auto,lado:"E",modo:innerWidth<800?"cartao":"div",cron:{est:"dig",oc:false},pct:78,z:1,antes};
   fecharModal(); salvar(); simMontar();
   try{ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); }catch(_){}
 }
@@ -934,13 +934,14 @@ function simAplicarModo(){
 }
 function simDescartar(){
   const sm=store.sim; if(!sm) return; clearInterval(SIMTK); SIMTK=null;
-  sm.areas.forEach(a=>{ S.ans[a]=Array(45).fill(""); S.env[a]=false; });
+  if(sm.antes){ const c=JSON.parse(JSON.stringify(sm.antes)); S.cor=c.cor; S.lang=c.lang; S.ans=c.ans; S.env=c.env; S.red=c.red; }
+  else { sm.areas.forEach(a=>{ S.ans[a]=Array(45).fill(""); S.env[a]=false; }); }
   store.sim=null; store.view="lobby"; salvar();
   $("sim").classList.add("hidden"); $("sim").innerHTML=""; document.body.style.overflow=""; try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(_){}
-  fecharModal(); renderAll(); window.scrollTo({top:0,behavior:"auto"}); toast("Simulado descartado. Nada foi para o histórico.");
+  fecharModal(); renderAll(); window.scrollTo({top:0,behavior:"auto"}); toast(sm.antes?"Simulado descartado. Seu preenchimento anterior foi devolvido.":"Simulado descartado. Nada foi para o histórico.");
 }
 function simPerguntarSair(){
-  abrirModal(`<h3>Sair do simulado?</h3><p>Descartar <b>apaga as marcações e o tempo</b> deste simulado e nada vai para o histórico. O que você tinha antes de começar continua guardado no histórico.</p>
+  abrirModal(`<h3>Sair do simulado?</h3><p>Descartar <b>apaga as marcações e o tempo</b> deste simulado e nada vai para o histórico. ${store.sim&&store.sim.antes?"O preenchimento que você tinha antes de começar <b>volta para o cartão</b>.":""}</p>
     <p class="hint">Quer só terminar? Use <b>Encerrar e corrigir</b> no topo.</p>
     <div class="modal-act"><button class="btn pri" type="button" data-act="fechar">Continuar o simulado</button><button class="btn danger" type="button" data-act="simDescartar">Descartar e sair</button></div>`);
 }
@@ -982,6 +983,7 @@ function simFinalizar(auto){
   const sm=store.sim; if(!sm) return; clearInterval(SIMTK); SIMTK=null;
   const usado=Math.max(0,Math.min(Math.round((Date.now()-sm.ini)/1000),auto?sm.dur:Infinity));
   sm.areas.forEach(a=>{ S.env[a]=true; });
+  if(sm.antes&&!(S.hist.length&&sig(S.hist[S.hist.length-1])===sig(sm.antes))) salvarHist(nomeProximo()+" (antes do cronometrado)",true,sm.antes,Date.now()-1);
   const nomeHist=nomeProximo()+" · cronometrado"; salvarHist(nomeHist,true);
   const ar=sm.areas; store.sim=null; S.tab=ar[0]; salvar();
   $("sim").classList.add("hidden"); $("sim").innerHTML=""; document.body.style.overflow=""; try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(_){} fecharModal();
@@ -1109,11 +1111,11 @@ function abrirApagar(){
     <div class="modal-act"><button class="btn pri" type="button" data-act="fechar">Cancelar</button></div>`);
 }
 function stripHtml(){ return `<div class="row" style="justify-content:space-between"><span class="hint">Seu preenchimento fica salvo neste navegador. Perdeu tudo? Carregue o seu backup.</span><div class="row"><button class="btn sm" data-act="bkDown" type="button">Baixar backup</button><button class="btn sm" data-act="bkUp" type="button">Carregar backup</button><button class="btn sm danger" data-act="limparTudo" type="button">Apagar dados…</button></div></div>`; }
-function salvarHist(nomeOpt,quieto){
+function salvarHist(nomeOpt,quieto,st=S,idOpt){
   const nome=nomeOpt||(($("nomeSim")||{}).value||"").trim()||nomeProximo();
-  const n=notasDe(S), notas={}; for(const s of SERIES) notas[s[0]]=n[s[0]]===undefined?null:n[s[0]];
-  const copia=JSON.parse(JSON.stringify({cor:S.cor,lang:S.lang,ans:S.ans,env:S.env,red:S.red}));
-  const pn=panDe(S); S.hist.push({id:Date.now(),t:Date.now(),nn:n._n,nome:nome.slice(0,60),...copia,notas,pan:pn.n?{ac:pn.ac,er:pn.er,br:pn.br,tot:pn.tot,n:pn.n}:null}); if(S.hist.length>100) S.hist.shift();
+  const n=notasDe(st), notas={}; for(const s of SERIES) notas[s[0]]=n[s[0]]===undefined?null:n[s[0]];
+  const copia=JSON.parse(JSON.stringify({cor:st.cor,lang:st.lang,ans:st.ans,env:st.env,red:st.red}));
+  const pn=panDe(st); S.hist.push({id:idOpt||Date.now(),t:idOpt||Date.now(),nn:n._n,nome:nome.slice(0,60),...copia,notas,pan:pn.n?{ac:pn.ac,er:pn.er,br:pn.br,tot:pn.tot,n:pn.n}:null}); if(S.hist.length>100) S.hist.shift();
   salvar(); if(!quieto){ renderPane(); toast("Simulado salvo no histórico."); }
 }
 /* confirmação própria do site (substitui o confirm() nativo do navegador) */
