@@ -195,6 +195,7 @@ tr.fora td{color:var(--muted)}
 #sim.m-pdf .sim-pdf{flex:1 1 auto!important}
 #sim:not(.m-div) [data-act=simLado]{display:none}
 #sim.m-pdf .zm{display:none}
+.sim-fim{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:6px 0 24px;padding:14px;border-top:1px solid var(--line)}
 .sim-div{flex:0 0 10px;position:relative;cursor:col-resize;touch-action:none;display:flex;align-items:center;justify-content:center;outline:none}
 .sim-div::before{content:"";position:absolute;inset:0 4px;background:var(--line);transition:background .15s}
 .sim-div:hover::before,.sim-div:focus-visible::before,#sim.arrastando .sim-div::before{background:var(--green)}
@@ -938,11 +939,12 @@ function simRender(){
     <span class="zm" role="group" aria-label="Tamanho do cartão"><button class="btn ic sm" type="button" data-act="simZ" data-d="-1" title="Diminuir o cartão" aria-label="Diminuir o cartão">A−</button><button class="btn ic sm" type="button" data-act="simZ" data-d="1" title="Aumentar o cartão" aria-label="Aumentar o cartão">A+</button></span>
     <button class="btn sm" type="button" id="simFs" data-act="simFs">${document.fullscreenElement?"Sair da tela cheia":"Tela cheia"}</button>
     ${url?`<a class="btn sm" href="${url}" target="_blank" rel="noopener">Abrir PDF em outra aba</a>`:""}
-    <button class="btn sm danger" type="button" data-act="simSair">Sair</button><button class="btn pri sm" type="button" data-act="simEnd">Encerrar e corrigir</button></div>
+    <button class="btn sm danger" type="button" data-act="simSair" title="Sair do simulado: corrigir agora ou descartar">Sair</button></div>
     ${cr.est==="qua"&&!cr.oc?`<div class="sim-quadro" id="sim-quadro"></div>`:""}
     <div class="sim-b" id="simB"><div class="sim-pdf" id="simPdf">${url?`<iframe src="${url}#view=FitH&navpanes=0" title="Caderno de questões ${EX.nome}"></iframe>`:`<div class="semlink hint">Sem link do PDF para este caderno. Abra o caderno no <a href="${LINK_INEP}" target="_blank" rel="noopener">site do INEP</a> e use só o cartão aqui.</div>`}</div><div class="sim-div" id="simDiv" role="separator" aria-orientation="vertical" aria-label="Arraste para redimensionar a prova e o cartão" title="Arraste para redimensionar" tabindex="0"><i>⋮</i></div><div class="sim-card"><div id="simZoom">`;
   sm.areas.forEach(a=>{ const r=analisarC(a);
     h+=`<section class="panel area" id="area-${a}"><div class="area-h"><div><h2>${AREAS[a].nome}<small id="prog-${a}"></small></h2></div></div><div class="sheet" id="sheet-${a}" role="group" aria-label="Cartão-resposta ${AREAS[a].nome}">${sheetInner(a,r,false)}</div></section>`; });
+  h+=`<div class="sim-fim"><button class="btn pri" type="button" data-act="simEnd">Encerrar e corrigir</button><span class="hint">Terminou a prova? Corrija aqui. As questões sem marcação contam como em branco.</span></div>`;
   el.innerHTML=h+`</div></div></div>`;
   simAplicarModo(); sm.areas.forEach(a=>pintar(a,true)); simProg();
 }
@@ -966,9 +968,11 @@ function simDescartar(){
   fecharModal(); renderAll(); window.scrollTo({top:0,behavior:"auto"}); toast(sm.antes?"Simulado descartado. Seu preenchimento anterior foi devolvido.":"Simulado descartado. Nada foi para o histórico.");
 }
 function simPerguntarSair(){
-  abrirModal(`<h3>Sair do simulado?</h3><p>Descartar <b>apaga as marcações e o tempo</b> deste simulado e nada vai para o histórico. ${store.sim&&store.sim.antes?"O preenchimento que você tinha antes de começar <b>volta para o cartão</b>.":""}</p>
-    <p class="hint">Quer só terminar? Use <b>Encerrar e corrigir</b> no topo.</p>
-    <div class="modal-act"><button class="btn pri" type="button" data-act="fechar">Continuar o simulado</button><button class="btn danger" type="button" data-act="simDescartar">Descartar e sair</button></div>`);
+  const {f,t}=simContagem();
+  abrirModal(`<h3>Sair do simulado</h3><p style="margin:6px 0 0">Você marcou <b>${f} de ${t}</b> questões. O que fazer com este simulado?</p>
+    <div class="apg"><b>Corrigir e sair</b><span>Corrige agora com o que está marcado (o resto conta como em branco), salva no histórico e para o cronômetro.</span><button class="btn pri sm" type="button" data-act="simEndGo">Corrigir e sair</button></div>
+    <div class="apg"><b>Descartar e sair</b><span>Apaga as marcações e o tempo deste simulado e nada vai para o histórico. ${store.sim&&store.sim.antes?"O preenchimento que você tinha antes de começar <b>volta para o cartão</b>.":""}</span><button class="btn danger sm" type="button" data-act="simDescartar">Descartar e sair</button></div>
+    <div class="modal-act"><button class="btn" type="button" data-act="fechar">Continuar o simulado</button></div>`);
 }
 function simContagem(){ const sm=store.sim; let f=0; sm.areas.forEach(a=>{ f+=S.ans[a].filter(x=>x!=="").length; }); return {f,t:sm.areas.length*45}; }
 function simProg(){
