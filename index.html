@@ -5,6 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Correção ENEM</title>
 <meta name="description" content="Cartão-resposta digital do ENEM: marque suas respostas e veja a nota TRI estimada, o gabarito, o raio-X e a evolução entre simulados. Funciona offline.">
+<meta name="theme-color" content="#0A7A34">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="alternate icon" href="favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="application-name" content="Correção ENEM">
+<meta name="apple-mobile-web-app-title" content="Correção ENEM">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Correção ENEM">
+<meta property="og:title" content="Correção ENEM: cartão-resposta digital">
+<meta property="og:description" content="Marque, corrija e veja sua nota TRI estimada, o gabarito e onde melhorar. Simulado com cronômetro e PDF do INEP. Do ENEM 2009 ao 2025.">
+<meta property="og:image" content="https://correcao-enem-gamma.vercel.app/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Correção ENEM: cartão-resposta digital">
+<meta name="twitter:description" content="Marque, corrija e veja sua nota TRI estimada, o gabarito e onde melhorar.">
+<meta name="twitter:image" content="https://correcao-enem-gamma.vercel.app/og-image.png">
 <style>
 :root{
   --bg:#F6F9FE;--card:#fff;--ink:#131820;--muted:#57626F;--line:#DDE3EB;--soft:#EEF2F8;
@@ -38,8 +59,10 @@ a{color:var(--blue)}
 /* topo e abas */
 .topbar{position:sticky;top:0;z-index:20;background:var(--bar);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .topbar-in{max-width:1120px;margin:0 auto;padding:8px 16px;display:flex;align-items:center;gap:10px}
-.brand{appearance:none;border:0;background:transparent;font:inherit;font-weight:700;letter-spacing:-.01em;white-space:nowrap;cursor:pointer;color:var(--ink);padding:4px 0}
+.brand{display:inline-flex;align-items:center;gap:9px;appearance:none;border:0;background:transparent;font:inherit;font-weight:700;letter-spacing:-.01em;white-space:nowrap;cursor:pointer;color:var(--ink);padding:4px 0}
 .brand b{color:var(--green)}
+.logo{display:block;flex:none;border-radius:8px}
+.hero-t{display:flex;align-items:center;gap:14px}
 .tabs{display:flex;gap:6px;flex:1;overflow-x:auto;scrollbar-width:none;padding:2px}
 .tabs::-webkit-scrollbar{display:none}
 .tab{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:3px 10px;min-width:64px;cursor:pointer;font:inherit;text-align:center;line-height:1.15;flex:none}
@@ -324,7 +347,7 @@ details.fazer>summary{list-style:none;cursor:pointer;display:inline-flex}details
 <body>
 <div class="topbar">
   <div class="topbar-in">
-    <button class="brand" id="home" type="button" title="Voltar ao início">Correção <b>ENEM</b></button>
+    <button class="brand" id="home" type="button" title="Voltar ao início"><img class="logo" src="favicon.svg" width="28" height="28" alt=""><span>Correção <b>ENEM</b></span></button>
     <nav class="tabs hidden" id="tabs" role="tablist" aria-label="Áreas da prova"></nav>
     <div class="bar-act">
       <button class="btn sm hidden" id="hubBtn" type="button" data-act="hub" title="Voltar ao hub de provas">←&nbsp;<span class="lg">Voltar ao&nbsp;</span>hub</button>
@@ -1354,7 +1377,7 @@ function dashLobby(){
   return `<details class="panel acc dashd" id="dashSec" ${aberto?"open":""} style="padding:0;margin-bottom:14px"><summary><span><b>📈 Seu desempenho</b> <small>${sub}</small></span></summary><div class="acc-b">${dashHtml(DASH_ESC,true)}</div></details>`;
 }
 function renderLobby(){
-  const ret=retomarHtml(); const main=$("main"); let h=`<header class="hero"><h1>Correção <em>ENEM</em></h1>
+  const ret=retomarHtml(); const main=$("main"); let h=`<header class="hero"><div class="hero-t"><img class="logo" src="favicon.svg" width="52" height="52" alt=""><h1 style="margin:0">Correção <em>ENEM</em></h1></div>
     <p class="sub">Escolha a prova, faça o simulado e corrija aqui: nota TRI estimada, gabarito, enunciado e onde melhorar. Do ENEM 2025 ao 2009, só as provas que têm TRI.</p></header>
     ${ret.html}
     ${dashLobby()}
