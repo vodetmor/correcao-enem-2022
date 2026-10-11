@@ -878,12 +878,14 @@ function renderDet(a,r){
 
 
 /* ---------- simulado: PDF do INEP + cartão lado a lado + cronômetro ---------- */
-const SIM_DIA_MIN=330, SIM_AREA_MIN=165; /* 5h30 para o dia; 165 min = 45 questões a 3min40s */
+/* tempo oficial (min) de cada dia, lido do item 4 das instruções de cada caderno do INEP: 2009-2016 = 4h30 (1º dia) e 5h30 (2º, com redação); 2017 = 5h30 e 4h30; 2018+ = 5h30 (1º, com redação) e 5h (2º) */
+const TEMPO_OFICIAL={2009:[270,330],2010:[270,330],2011:[270,330],2012:[270,330],2013:[270,330],2014:[270,330],2015:[270,330],2016:[270,330],2017:[330,270]};
+function tempoDia(d){ const t=TEMPO_OFICIAL[+String(EX.id).replace(/\D/g,"")]||[330,300]; return t[d-1]||330; }
 let SIMCFG=null, SIMTK=null;
 const AREA_CURTO={LC:"Linguagens",CH:"Humanas",CN:"Natureza",MT:"Matemática"};
 function simAreasDe(esc){ return esc[0]==="d"?Object.keys(AREAS).filter(a=>AREAS[a].dia===+esc.slice(1)):[esc.slice(2)]; }
 function simDiaDe(esc){ return esc[0]==="d"?+esc.slice(1):AREAS[esc.slice(2)].dia; }
-function simMinPadrao(esc){ return esc[0]==="d"?SIM_DIA_MIN:SIM_AREA_MIN; }
+function simMinPadrao(esc){ const d=simDiaDe(esc), n=Object.keys(AREAS).filter(a=>AREAS[a].dia===d).length||2; return esc[0]==="d"?tempoDia(d):Math.round(tempoDia(d)/n); }
 function simUrl(d){ const L=(EX.info.links||{})[d]; return L&&S.cor[d]?L[S.cor[d]]||null:null; }
 function fmtDur(sg){ sg=Math.max(0,Math.floor(sg)); const h=Math.floor(sg/3600), m=Math.floor(sg%3600/60), x=sg%60, d=n=>String(n).padStart(2,"0"); return `${d(h)}:${d(m)}:${d(x)}`; }
 function fmtMin(m){ return Math.floor(m/60)+"h"+(m%60?String(m%60).padStart(2,"0"):""); }
