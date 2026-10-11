@@ -263,15 +263,15 @@
     ]
    },
    "MT": {
-    "classe": "ESTIMADO",
-    "pct_dentro_1": 99.829,
-    "pct_dentro_0_1": 99.407,
+    "classe": "EXATO",
+    "pct_dentro_1": 100.0,
+    "pct_dentro_0_1": 100.0,
     "n": 5020493,
-    "corr": 1.0,
-    "margem_p95": 0.1,
+    "corr": null,
+    "margem_p95": null,
     "constantes": [
      500.02,
-     129.647
+     129.646
     ]
    }
   },

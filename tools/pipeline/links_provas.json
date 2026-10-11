@@ -261,13 +261,13 @@
     "AZUL": "https://download.inep.gov.br/enem/provas_e_gabaritos/2024_PV_impresso_D1_CD1.pdf",
     "AMARELA": "https://download.inep.gov.br/enem/provas_e_gabaritos/2024_PV_impresso_D1_CD2.pdf",
     "BRANCA": "https://download.inep.gov.br/enem/provas_e_gabaritos/2024_PV_impresso_D1_CD3.pdf",
-    "ROSA": "https://download.inep.gov.br/enem/provas_e_gabaritos/2024_PV_impresso_D1_CD4.pdf"
+    "VERDE": "https://download.inep.gov.br/enem/provas_e_gabaritos/2024_PV_impresso_D1_CD4.pdf"
    },
    "2": {
     "AMARELA": "https://download.inep.gov.br/enem/provas_e_gabaritos/2024_PV_impresso_D2_CD5.pdf",
     "CINZA": "https://download.inep.gov.br/enem/provas_e_gabaritos/2024_PV_impresso_D2_CD6.pdf",
     "AZUL": "https://download.inep.gov.br/enem/provas_e_gabaritos/2024_PV_impresso_D2_CD7.pdf",
-    "ROSA": "https://download.inep.gov.br/enem/provas_e_gabaritos/2024_PV_impresso_D2_CD8.pdf"
+    "VERDE": "https://download.inep.gov.br/enem/provas_e_gabaritos/2024_PV_impresso_D2_CD8.pdf"
    }
   }
  },
@@ -278,13 +278,13 @@
     "AZUL": "https://download.inep.gov.br/enem/provas_e_gabaritos/2025_PV_impresso_D1_CD1.pdf",
     "AMARELA": "https://download.inep.gov.br/enem/provas_e_gabaritos/2025_PV_impresso_D1_CD2.pdf",
     "BRANCA": "https://download.inep.gov.br/enem/provas_e_gabaritos/2025_PV_impresso_D1_CD3.pdf",
-    "ROSA": "https://download.inep.gov.br/enem/provas_e_gabaritos/2025_PV_impresso_D1_CD4.pdf"
+    "VERDE": "https://download.inep.gov.br/enem/provas_e_gabaritos/2025_PV_impresso_D1_CD4.pdf"
    },
    "2": {
     "AMARELA": "https://download.inep.gov.br/enem/provas_e_gabaritos/2025_PV_impresso_D2_CD5.pdf",
     "CINZA": "https://download.inep.gov.br/enem/provas_e_gabaritos/2025_PV_impresso_D2_CD6.pdf",
     "AZUL": "https://download.inep.gov.br/enem/provas_e_gabaritos/2025_PV_impresso_D2_CD7.pdf",
-    "ROSA": "https://download.inep.gov.br/enem/provas_e_gabaritos/2025_PV_impresso_D2_CD8.pdf"
+    "VERDE": "https://download.inep.gov.br/enem/provas_e_gabaritos/2025_PV_impresso_D2_CD8.pdf"
    }
   }
  },
