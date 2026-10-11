@@ -1024,8 +1024,8 @@ function simFinalizar(auto){
 function simPerguntarFim(){
   const sm=store.sim, {f,t}=simContagem();
   const rest=Math.round((sm.fim-Date.now())/1000);
-  abrirModal(`<h3>Encerrar e corrigir?</h3><p>Você marcou <b>${f} de ${t}</b> questões.${t-f?` As <b>${t-f}</b> sem marcação contam como em branco.`:""} ${rest>0?`Ainda restam <b>${fmtDur(rest)}</b>.`:""}</p><p class="hint">Depois de corrigir, o gabarito aparece e o cronômetro para.</p>
-    <div class="modal-act"><button class="btn" type="button" data-act="fechar">Voltar à prova</button><button class="btn pri" type="button" data-act="simEndGo">Corrigir agora</button></div>`);
+  abrirModal(`<h3>Encerrar e corrigir?</h3><p style="margin:6px 0 0">${f===t?`Você marcou <b>todas as ${t} questões</b>.`:`Você marcou <b>${f} de ${t}</b> questões. As <b>${t-f}</b> sem marcação contam como em branco.`} ${rest>0?`Ainda restam <b>${fmtDur(rest)}</b>.`:""}</p><p class="hint" style="margin:8px 0 0">Ao corrigir, o cronômetro para, o gabarito aparece e o simulado é salvo no histórico. Foi sem querer? É só continuar.</p>
+    <div class="modal-act"><button class="btn pri" type="button" data-act="fechar">Continuar o simulado</button><button class="btn" type="button" data-act="simEndGo">Corrigir e encerrar</button></div>`);
 }
 
 /* ---------- confirmar e corrigir ---------- */
