@@ -327,7 +327,7 @@ details.fazer>summary{list-style:none;cursor:pointer;display:inline-flex}details
     <nav class="tabs hidden" id="tabs" role="tablist" aria-label="Áreas da prova"></nav>
     <div class="bar-act">
       <button class="btn sm hidden" id="hubBtn" type="button" data-act="hub" title="Voltar ao hub de provas">←&nbsp;<span class="lg">Voltar ao&nbsp;</span>hub</button>
-      <button class="btn pri sm" id="salvar" type="button">Salvar</button>
+      <button class="btn pri sm" id="salvar" type="button" title="Tudo já é salvo automaticamente a cada marcação. Este botão só confirma.">Salvar</button>
       <button class="btn ic sm" id="tema" type="button" aria-label="Alternar tema claro e escuro" title="Alternar tema">◐</button>
     </div>
   </div>
@@ -412,7 +412,7 @@ function setExam(id){
   if(!store.estados[id]) store.estados[id]=novoEstado(EX);
   S=store.estados[id];
 }
-function salvar(){ try{ localStorage.setItem(KEY,JSON.stringify(store)); return true; }catch(_){ return false; } }
+function salvar(){ try{ localStorage.setItem(KEY,JSON.stringify(store)); return true; }catch(_){ if(!salvar.avisou){ salvar.avisou=1; setTimeout(()=>toast("⚠ Este navegador não está deixando salvar (aba anônima ou sem espaço). Baixe o backup para não perder o progresso.","Baixar backup"),0); } return false; } }
 function carregar(){
   let o=null;
   try{ const r=localStorage.getItem(KEY); if(r) o=JSON.parse(r); else { const r2=localStorage.getItem(KEY_V2); if(r2){ const v=JSON.parse(r2); o={exam:v.exam,view:"exam",estados:v.estados}; } } }catch(_){}
@@ -899,6 +899,7 @@ function simConfirmar(){
       <li>O cronômetro de <b>${fmtMin(min)}</b> começa <b>assim que você clicar</b> e não pausa, nem se você recarregar a página.</li>
       <li>A página entra em <b>tela cheia</b> (Esc sai; dá para voltar pelo botão no topo).</li>
       <li>${c.auto?"Quando o tempo zerar, o cartão trava e <b>é corrigido automaticamente</b>.":"Quando o tempo zerar, você continua no excedente e corrige quando quiser."}</li>
+      <li>Cada marcação é <b>salva automaticamente</b> neste navegador: se atualizar ou fechar sem querer, nada se perde.</li>
       <li>Você pode encerrar antes pelo botão <b>Encerrar e corrigir</b>.</li>
     </ul>
     ${simAvisoParcial(c)}
