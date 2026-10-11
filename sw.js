@@ -1,7 +1,7 @@
 /* Service worker: o site e cada prova abertas ficam guardados no aparelho e passam a funcionar sem internet.
    - dados/enem_ANO.js: cache primeiro (arquivo imutável por versão), atualiza em segundo plano.
    - página e demais arquivos: rede primeiro, com cache de reserva (para a pessoa receber atualizações). */
-const VERSAO = "correcao-enem-v22";
+const VERSAO = "correcao-enem-v23";
 self.addEventListener("install", e => { self.skipWaiting(); });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSAO).map(k => caches.delete(k)))).then(() => self.clients.claim()));

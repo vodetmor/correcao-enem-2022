@@ -229,6 +229,22 @@ tr.fora td{color:var(--muted)}
 #sim.arrastando{user-select:none;cursor:col-resize}
 #sim.arrastando iframe{pointer-events:none}
 #sim.m-pdf .sim-div,#sim.m-cartao .sim-div{display:none}
+.pdfbar{display:none;align-items:center;gap:8px;padding:6px 10px;background:var(--bar);border-bottom:1px solid var(--line);font-size:.85rem}
+.pdfbar .btn:last-child{margin-left:auto}
+.pdfjs{flex:1;min-height:0;min-width:0;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--soft);padding:4px;touch-action:pan-x pan-y pinch-zoom}
+.pdfpg{margin:0 auto 6px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.pdfpg canvas{display:block}
+#sim.m-pdf .pdfbar,#sim.m-div .pdfbar{display:flex}
+@media(max-width:640px){
+  .sim-h{gap:6px 8px;padding:6px 10px}
+  .sim-h .ttl{font-size:.86rem;flex:1 1 100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sim-h .ttl small{display:inline;margin-left:6px}
+  .sim-t{font-size:1.3rem;padding:4px 10px}
+  .sim-h [data-act=simCronEst],.sim-h [data-act=simCronOc],.sim-h [data-act=simLado],.sim-h [data-act=simFs],.sim-h .zm,.sim-h a.btn{display:none}
+  .sim-h .sp{display:none}
+  .sim-h .seg{margin-left:auto}
+}
+
 .zm{display:inline-flex;gap:4px}
 .q .dif{font-size:.66rem;padding:1px 8px;margin-left:4px;white-space:nowrap;flex:none}
 .apg{border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-top:10px;display:grid;gap:6px;justify-items:start}
@@ -940,9 +956,49 @@ function simIniciar(){
   const arqId=sobre?arquivarRascunho(nomeProximo()+" (antes do cronometrado)"):null;
   ar.forEach(a=>{ S.ans[a]=Array(45).fill(""); S.env[a]=false; });
   const agora=Date.now(); S.tab=ar[0];
-  store.sim={ex:EX.id,areas:ar,ini:agora,fim:agora+min*60000,dur:min*60,auto:!!c.auto,lado:"E",modo:innerWidth<800?"cartao":"div",cron:{est:"dig",oc:false},pct:78,z:1,antes,arqId};
+  store.sim={ex:EX.id,areas:ar,ini:agora,fim:agora+min*60000,dur:min*60,auto:!!c.auto,lado:"E",modo:innerWidth<800?"pdf":"div",cron:{est:"dig",oc:false},pct:78,z:1,antes,arqId};
   fecharModal(); salvar(); simMontar();
   try{ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); }catch(_){}
+}
+/* PDF dentro da página: celular (iOS/Android) não tem visualizador de PDF em <iframe> e só mostra "Abrir PDF".
+   Nesses aparelhos o caderno do INEP (CORS aberto) é desenhado com PDF.js, página a página, sob demanda. */
+function pdfSemVisualizador(){
+  const movel=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent))||matchMedia("(pointer:coarse)").matches;
+  return movel||navigator.pdfViewerEnabled===false;
+}
+const PDFJS_V="3.11.174", PDFJS_CDN="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/"+PDFJS_V+"/";
+let PDFJS_LIB=null; const PDFJS_DOCS=new Map(); let PDFJS_TOK=0, PDFJS_ZOOM=1;
+function pdfjsCarregar(){
+  if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  return PDFJS_LIB||(PDFJS_LIB=new Promise((ok,no)=>{ const s=document.createElement("script"); s.src=PDFJS_CDN+"pdf.min.js"; s.onload=()=>{ window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS_CDN+"pdf.worker.min.js"; ok(window.pdfjsLib); }; s.onerror=()=>{ PDFJS_LIB=null; no(new Error("pdfjs")); }; document.head.appendChild(s); }));
+}
+function pdfjsFalha(box,url){ box.innerHTML=`<div class="semlink hint">Não consegui carregar a prova aqui. <a href="${url}" target="_blank" rel="noopener">Abra o PDF em outra aba</a> e use o cartão neste aplicativo.</div>`; }
+async function pdfjsMontar(url){
+  const box=$("pdfjs"); if(!box) return; const tok=++PDFJS_TOK;
+  try{
+    const lib=await pdfjsCarregar();
+    if(!PDFJS_DOCS.has(url)) PDFJS_DOCS.set(url,lib.getDocument({url,withCredentials:false}).promise.catch(e=>{ PDFJS_DOCS.delete(url); throw e; }));
+    const doc=await PDFJS_DOCS.get(url); if(tok!==PDFJS_TOK||!box.isConnected) return;
+    const p1=await doc.getPage(1), v1=p1.getViewport({scale:1}), prop=v1.height/v1.width;
+    box.innerHTML=""; const largura=()=>Math.max(200,(box.clientWidth-8)*PDFJS_ZOOM);
+    const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting) desenhar(e.target); }),{root:box,rootMargin:"900px 0px"});
+    const desenhar=async el=>{
+      const w=Math.round(largura()); if(el._w===w||el._busy) return; el._busy=true;
+      try{
+        const pg=await doc.getPage(+el.dataset.p), vp=pg.getViewport({scale:1}), esc=w/vp.width, dpr=Math.min(window.devicePixelRatio||1,2.5);
+        const cv=document.createElement("canvas"); cv.width=Math.floor(w*dpr); cv.height=Math.floor(vp.height*esc*dpr); cv.style.width=w+"px"; cv.style.height=Math.round(vp.height*esc)+"px";
+        await pg.render({canvasContext:cv.getContext("2d"),viewport:pg.getViewport({scale:esc*dpr})}).promise;
+        if(tok!==PDFJS_TOK) return; el.style.width=w+"px"; el.style.height=""; el.replaceChildren(cv); el._w=w;
+      }catch(_){} finally{ el._busy=false; }
+    };
+    for(let i=1;i<=doc.numPages;i++){ const el=document.createElement("div"); el.className="pdfpg"; el.dataset.p=i; el.style.width=Math.round(largura())+"px"; el.style.height=Math.round(largura()*prop)+"px"; box.appendChild(el); io.observe(el); }
+    box._redo=()=>box.querySelectorAll(".pdfpg").forEach(el=>{ const w=Math.round(largura()); el.style.width=w+"px"; const cv=el.firstChild; if(cv){ cv.style.width="100%"; cv.style.height="auto"; } else el.style.height=Math.round(w*prop)+"px"; io.unobserve(el); io.observe(el); });
+    let cw=box.clientWidth; new ResizeObserver(()=>{ if(tok!==PDFJS_TOK||!box.clientWidth||box.clientWidth===cw) return; cw=box.clientWidth; box._redo(); }).observe(box);
+  }catch(e){ console.warn("pdfjs",e); if(tok===PDFJS_TOK&&box.isConnected) pdfjsFalha(box,url); }
+}
+function pdfjsZoom(d){
+  PDFJS_ZOOM=Math.max(1,Math.min(3,Math.round((PDFJS_ZOOM+.25*d)*100)/100)); const z=$("pdfZv"); if(z) z.textContent=Math.round(PDFJS_ZOOM*100)+"%";
+  const box=$("pdfjs"); if(box&&box._redo) box._redo();
 }
 function simRascunho(){ return Object.values(S.ans).some(v=>v.some(x=>x!==""))||Object.values(S.env).some(Boolean); }
 function simMontar(){
@@ -966,12 +1022,13 @@ function simRender(){
     ${url?`<a class="btn sm" href="${url}" target="_blank" rel="noopener">Abrir PDF em outra aba</a>`:""}
     <button class="btn sm danger" type="button" data-act="simSair" title="Sair do simulado: corrigir agora ou descartar">Sair</button></div>
     ${cr.est==="qua"&&!cr.oc?`<div class="sim-quadro" id="sim-quadro"></div>`:""}
-    <div class="sim-b" id="simB"><div class="sim-pdf" id="simPdf">${url?`<iframe src="${url}#view=FitH&navpanes=0" title="Caderno de questões ${EX.nome}"></iframe>`:`<div class="semlink hint">Sem link do PDF para este caderno. Abra o caderno no <a href="${LINK_INEP}" target="_blank" rel="noopener">site do INEP</a> e use só o cartão aqui.</div>`}</div><div class="sim-div" id="simDiv" role="separator" aria-orientation="vertical" aria-label="Arraste para redimensionar a prova e o cartão" title="Arraste para redimensionar" tabindex="0"><i>⋮</i></div><div class="sim-card"><div id="simZoom">`;
+    <div class="sim-b" id="simB"><div class="sim-pdf" id="simPdf">${url?(pdfSemVisualizador()?`<div class="pdfbar"><button class="btn ic sm" type="button" data-act="pdfZ" data-d="-1" aria-label="Diminuir a prova">−</button><span id="pdfZv">100%</span><button class="btn ic sm" type="button" data-act="pdfZ" data-d="1" aria-label="Aumentar a prova">+</button><a class="btn sm" href="${url}" target="_blank" rel="noopener">Abrir em outra aba</a></div><div class="pdfjs" id="pdfjs"><p class="hint" style="padding:20px">Carregando a prova…</p></div>`:`<iframe src="${url}#view=FitH&navpanes=0" title="Caderno de questões ${EX.nome}"></iframe>`):`<div class="semlink hint">Sem link do PDF para este caderno. Abra o caderno no <a href="${LINK_INEP}" target="_blank" rel="noopener">site do INEP</a> e use só o cartão aqui.</div>`}</div><div class="sim-div" id="simDiv" role="separator" aria-orientation="vertical" aria-label="Arraste para redimensionar a prova e o cartão" title="Arraste para redimensionar" tabindex="0"><i>⋮</i></div><div class="sim-card"><div id="simZoom">`;
   sm.areas.forEach(a=>{ const r=analisarC(a);
     h+=`<section class="panel area" id="area-${a}"><div class="area-h"><div><h2>${AREAS[a].nome}<small id="prog-${a}"></small></h2></div></div><div class="sheet" id="sheet-${a}" role="group" aria-label="Cartão-resposta ${AREAS[a].nome}">${sheetInner(a,r,false)}</div></section>`; });
   h+=`<div class="sim-fim"><button class="btn pri" type="button" data-act="simEnd">Encerrar e corrigir</button><span class="hint">Terminou a prova? Corrija aqui. As questões sem marcação contam como em branco.</span></div>`;
   el.innerHTML=h+`</div></div></div>`;
   simAplicarModo(); sm.areas.forEach(a=>pintar(a,true)); simProg();
+  if($("pdfjs")) pdfjsMontar(url);
 }
 /* troca de visão/lado/tamanho sem recarregar o PDF (preserva a página em que a pessoa está) */
 function simAplicarModo(){
@@ -1444,6 +1501,7 @@ document.addEventListener("click",e=>{
     case "simGo": simConfirmar(); break;
     case "simStart": simIniciar(); break;
     case "simFs": simTelaCheia(); break;
+    case "pdfZ": pdfjsZoom(+t.dataset.d); break;
     case "simModo": { store.sim.modo=t.dataset.m; salvar(); simAplicarModo(); break; }
     case "simLado": { store.sim.lado=store.sim.lado==="D"?"E":"D"; salvar(); simAplicarModo(); break; }
     case "simZ": { const sm=store.sim; sm.z=Math.max(.6,Math.min(1.6,Math.round(((sm.z||1)+.1*(+t.dataset.d))*10)/10)); salvar(); simAplicarModo(); break; }
@@ -1566,7 +1624,8 @@ document.addEventListener("keydown",e=>{
 });
 document.addEventListener("toggle",e=>{ if(e.target.id==="dashSec"&&store.view==="lobby"){ uiSet("dash",e.target.open); if(e.target.open) initCharts(); } },true);
 document.addEventListener("fullscreenchange",()=>{ const b=$("simFs"); if(b) b.textContent=document.fullscreenElement?"Sair da tela cheia":"Tela cheia"; });
-addEventListener("resize",()=>{ if(store.sim&&!$("sim").classList.contains("hidden")){ clearTimeout(simMontar.rz); simMontar.rz=setTimeout(()=>{ simRender(); simTick(); },200); } });
+let SIMW=innerWidth;
+addEventListener("resize",()=>{ if(innerWidth===SIMW) return; SIMW=innerWidth; if(store.sim&&!$("sim").classList.contains("hidden")){ clearTimeout(simMontar.rz); simMontar.rz=setTimeout(()=>{ simRender(); simTick(); },200); } });
 carregar();
 if(store.view==="exam") abrirExame(store.exam); else renderAll();
 if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(()=>{});
