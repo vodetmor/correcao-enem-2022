@@ -401,7 +401,7 @@ function validarStore(o){
     if(EXAMS[o.exam]) st.exam=o.exam;
     if(o.view==="exam") st.view="exam";
     const sm=o.sim; if(sm&&typeof sm==="object"&&EXAMS[sm.ex]&&Array.isArray(sm.areas)&&Number.isFinite(sm.fim)&&Number.isFinite(sm.dur)){
-      const ar=sm.areas.filter(a=>EXAMS[sm.ex].areas[a]); if(ar.length){ const cr=sm.cron||{}; st.sim={ex:sm.ex,areas:ar,fim:sm.fim,ini:Number(sm.ini)||sm.fim-sm.dur*1000,dur:sm.dur,auto:!!sm.auto,lado:sm.lado==="D"?"D":"E",modo:["div","pdf","cartao"].includes(sm.modo)?sm.modo:"div",cron:{est:["dig","rel","qua"].includes(cr.est)?cr.est:"dig",oc:!!cr.oc},pct:Math.max(20,Math.min(80,Number(sm.pct)||78)),z:Math.max(.6,Math.min(1.6,Number(sm.z)||1))}; if(sm.antes&&typeof sm.antes==='object'){ const x=novoEstado(EXAMS[sm.ex]); lerCampos(sm.antes,EXAMS[sm.ex],x); st.sim.antes={cor:x.cor,lang:x.lang,ans:x.ans,env:x.env,red:x.red}; } }
+      const ar=sm.areas.filter(a=>EXAMS[sm.ex].areas[a]); if(ar.length){ const cr=sm.cron||{}; st.sim={ex:sm.ex,areas:ar,fim:sm.fim,ini:Number(sm.ini)||sm.fim-sm.dur*1000,dur:sm.dur,auto:!!sm.auto,lado:sm.lado==="D"?"D":"E",modo:["div","pdf","cartao"].includes(sm.modo)?sm.modo:"div",cron:{est:["dig","rel","qua"].includes(cr.est)?cr.est:"dig",oc:!!cr.oc},pct:Math.max(20,Math.min(80,Number(sm.pct)||78)),z:Math.max(.6,Math.min(1.6,Number(sm.z)||1)),arqId:Number(sm.arqId)||null}; if(sm.antes&&typeof sm.antes==='object'){ const x=novoEstado(EXAMS[sm.ex]); lerCampos(sm.antes,EXAMS[sm.ex],x); st.sim.antes={cor:x.cor,lang:x.lang,ans:x.ans,env:x.env,red:x.red}; } }
     }
     for(const id in EXAMS) st.estados[id]=validar(o.estados&&o.estados[id],EXAMS[id]);
   } else for(const id in EXAMS) st.estados[id]=novoEstado(EXAMS[id]);
@@ -868,7 +868,7 @@ function simAvisoParcial(c){
   if(feitas.length) h+=`<b>Você já corrigiu:</b> ${feitas.map(a=>AREA_CURTO[a]+" "+simNotaDe(a)).join(", ")}. `;
   const fl=simFalta(); if(fl) h+=`<b>Falta:</b> ${fl.pend.map(a=>AREA_CURTO[a]).join(" e ")}. `;
   if(mantem.length&&!refaz.length) h+=`Este simulado <b>não mexe</b> em ${mantem.map(a=>AREA_CURTO[a]).join(" e ")}: as notas ficam como estão e a nova nota entra na sua média.`;
-  else if(refaz.length) h+=`<b>Atenção:</b> ${refaz.map(a=>AREA_CURTO[a]).join(" e ")} já ${refaz.length>1?"têm":"tem"} preenchimento. Refazer substitui o atual; ele fica guardado no histórico ao concluir e volta se você descartar.`;
+  else if(refaz.length) h+=`<b>Atenção:</b> ${refaz.map(a=>AREA_CURTO[a]).join(" e ")} já ${refaz.length>1?"têm":"tem"} preenchimento. Refazer abre o cartão em branco; o atual fica guardado no histórico agora e volta se você descartar.`;
   return h+`</div>`;
 }
 function renderSetup(){
@@ -910,9 +910,10 @@ function simIniciar(){
   const c=SIMCFG, ar=simAreasDe(c.esc), min=Math.max(5,Math.min(600,Math.round(+c.min)||simMinPadrao(c.esc)));
   const sobre=ar.some(a=>S.env[a]||S.ans[a].some(x=>x!==""));
   const antes=sobre?JSON.parse(JSON.stringify({cor:S.cor,lang:S.lang,ans:S.ans,env:S.env,red:S.red})):null;
+  const arqId=sobre?arquivarRascunho(nomeProximo()+" (antes do cronometrado)"):null;
   ar.forEach(a=>{ S.ans[a]=Array(45).fill(""); S.env[a]=false; });
   const agora=Date.now(); S.tab=ar[0];
-  store.sim={ex:EX.id,areas:ar,ini:agora,fim:agora+min*60000,dur:min*60,auto:!!c.auto,lado:"E",modo:innerWidth<800?"cartao":"div",cron:{est:"dig",oc:false},pct:78,z:1,antes};
+  store.sim={ex:EX.id,areas:ar,ini:agora,fim:agora+min*60000,dur:min*60,auto:!!c.auto,lado:"E",modo:innerWidth<800?"cartao":"div",cron:{est:"dig",oc:false},pct:78,z:1,antes,arqId};
   fecharModal(); salvar(); simMontar();
   try{ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); }catch(_){}
 }
@@ -956,6 +957,7 @@ function simAplicarModo(){
 }
 function simDescartar(){
   const sm=store.sim; if(!sm) return; clearInterval(SIMTK); SIMTK=null;
+  if(sm.arqId) S.hist=S.hist.filter(h=>h.id!==sm.arqId);
   if(sm.antes){ const c=JSON.parse(JSON.stringify(sm.antes)); S.cor=c.cor; S.lang=c.lang; S.ans=c.ans; S.env=c.env; S.red=c.red; }
   else { sm.areas.forEach(a=>{ S.ans[a]=Array(45).fill(""); S.env[a]=false; }); }
   store.sim=null; store.view="lobby"; salvar();
@@ -1005,7 +1007,6 @@ function simFinalizar(auto){
   const sm=store.sim; if(!sm) return; clearInterval(SIMTK); SIMTK=null;
   const usado=Math.max(0,Math.min(Math.round((Date.now()-sm.ini)/1000),auto?sm.dur:Infinity));
   sm.areas.forEach(a=>{ S.env[a]=true; });
-  if(sm.antes&&!(S.hist.length&&sig(S.hist[S.hist.length-1])===sig(sm.antes))) salvarHist(nomeProximo()+" (antes do cronometrado)",true,sm.antes,Date.now()-1);
   const nomeHist=nomeProximo()+" · cronometrado"; salvarHist(nomeHist,true);
   const ar=sm.areas; store.sim=null; S.tab=ar[0]; salvar();
   $("sim").classList.add("hidden"); $("sim").innerHTML=""; document.body.style.overflow=""; try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(_){} fecharModal();
@@ -1148,15 +1149,21 @@ function confirmar(titulo,texto,ok,aoOk,perigo){
   abrirModal(`<h3>${titulo}</h3><p style="margin:6px 0 0">${texto}</p><div class="modal-act"><button class="btn${perigo?"":" pri"}" type="button" data-act="fechar">Cancelar</button><button class="btn ${perigo?"danger":"pri"}" type="button" data-act="confOk">${ok}</button></div>`);
   if(perigo){ const c=$("modalCard").querySelector("button"); if(c) c.focus(); }
 }
+/* nenhuma ação substitui o cartão sem guardar antes a tentativa atual no histórico (dedupe por conteúdo) */
+function arquivarRascunho(rot){
+  if(!simRascunho()||S.hist.some(h=>sig(h)===sig(S))) return null;
+  const id=Date.now(); salvarHist(rot,true,S,id); return id;
+}
 function novoSim(){
   const temDados=Object.values(S.ans).some(v=>v.some(x=>x!==""));
-  const fazer=()=>{ const h=S.hist, ex=novoEstado(EX); Object.assign(S,ex,{hist:h,tab:Object.keys(AREAS)[0]}); salvar(); renderPane(); toast("Novo simulado pronto."); };
+  const fazer=()=>{ arquivarRascunho(nomeProximo()+" (antes de começar outro)"); const h=S.hist, ex=novoEstado(EX); Object.assign(S,ex,{hist:h,tab:Object.keys(AREAS)[0]}); salvar(); renderPane(); toast("Novo simulado pronto."); };
   if(!temDados){ fazer(); return; }
-  confirmar("Começar um novo simulado?","Isso limpa o cartão atual"+(S.hist.length?". O histórico fica.":". Você ainda não salvou nenhum simulado no histórico, então este preenchimento será perdido."),"Limpar e começar",fazer,true);
+  confirmar("Começar um novo simulado?","O preenchimento atual fica guardado no histórico e o cartão volta em branco para a nova tentativa.","Começar",fazer,false);
 }
 function abrirHist(id){
   const h=S.hist.find(x=>x.id===id); if(!h) return;
-  confirmar("Abrir este simulado no cartão?",`“${esc(h.nome)}” vai substituir o preenchimento atual do cartão. O histórico fica como está.`,"Abrir",()=>{
+  confirmar("Abrir este simulado no cartão?",`“${esc(h.nome)}” vai para o cartão. O preenchimento atual fica guardado no histórico antes (se ainda não estiver).`,"Abrir",()=>{
+    arquivarRascunho(nomeProximo()+" (antes de abrir “"+h.nome+"”)");
     const c=JSON.parse(JSON.stringify(h)); S.cor=c.cor; S.lang=c.lang; S.ans=c.ans; S.env=c.env; S.red=c.red; S.tab=Object.keys(AREAS)[0];
     salvar(); store.view="exam"; renderAll(); window.scrollTo({top:0,behavior:"auto"});
   },false);
