@@ -61,8 +61,10 @@ a{color:var(--blue)}
 .topbar-in{max-width:1120px;margin:0 auto;padding:8px 16px;display:flex;align-items:center;gap:10px}
 .brand{display:inline-flex;align-items:center;gap:9px;appearance:none;border:0;background:transparent;font:inherit;font-weight:700;letter-spacing:-.01em;white-space:nowrap;cursor:pointer;color:var(--ink);padding:4px 0}
 .brand b{color:var(--green)}
-.logo{display:block;flex:none;border-radius:8px}
-.hero-t{display:flex;align-items:center;gap:14px}
+.lockup{display:block;flex:none;height:32px;width:auto;aspect-ratio:222.1/72}
+.lockup.big{height:68px}
+.hero-lk{margin:0;line-height:0}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
 .tabs{display:flex;gap:6px;flex:1;overflow-x:auto;scrollbar-width:none;padding:2px}
 .tabs::-webkit-scrollbar{display:none}
 .tab{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:3px 10px;min-width:64px;cursor:pointer;font:inherit;text-align:center;line-height:1.15;flex:none}
@@ -345,13 +347,13 @@ details.fazer>summary{list-style:none;cursor:pointer;display:inline-flex}details
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="lk" viewBox="0 0 222.1 72"><rect width="72" height="72" rx="16.9" fill="#0A7A34"/><g transform="scale(1.125)"><circle cx="32" cy="32" r="23" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="2"/><circle cx="32" cy="32" r="17.5" fill="#fff"/><path d="M23.5 32.5l6.2 6.3L41 25.5" fill="none" stroke="#0A7A34" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round"/></g><path style="fill:var(--ink)" d="M104.13 27.35Q102.14 28.32 98.93 28.32Q94.74 28.32 92.34 25.85Q89.94 23.39 89.94 19.29Q89.94 14.92 92.64 12.21Q95.33 9.49 99.64 9.49Q102.3 9.49 104.13 10.16V14.11Q102.3 13.02 99.97 13.02Q97.4 13.02 95.83 14.63Q94.26 16.24 94.26 19Q94.26 21.64 95.74 23.21Q97.23 24.78 99.74 24.78Q102.14 24.78 104.13 23.61ZM116.23 28.32Q112.98 28.32 111.12 26.5Q109.26 24.67 109.26 21.55Q109.26 18.33 111.19 16.5Q113.12 14.68 116.41 14.68Q119.65 14.68 121.49 16.5Q123.33 18.33 123.33 21.32Q123.33 24.56 121.43 26.44Q119.53 28.32 116.23 28.32ZM116.33 17.75Q114.91 17.75 114.12 18.73Q113.34 19.71 113.34 21.5Q113.34 25.25 116.36 25.25Q119.24 25.25 119.24 21.4Q119.24 17.75 116.33 17.75ZM137.54 18.62Q136.81 18.22 135.85 18.22Q134.54 18.22 133.8 19.18Q133.07 20.14 133.07 21.79V28H129.05V15H133.07V17.41H133.12Q134.07 14.77 136.54 14.77Q137.18 14.77 137.54 14.92ZM151.01 18.62Q150.28 18.22 149.32 18.22Q148.01 18.22 147.27 19.18Q146.54 20.14 146.54 21.79V28H142.52V15H146.54V17.41H146.59Q147.54 14.77 150.02 14.77Q150.65 14.77 151.01 14.92ZM167.67 22.64H159.19Q159.4 25.47 162.76 25.47Q164.91 25.47 166.53 24.46V27.35Q164.73 28.32 161.85 28.32Q158.7 28.32 156.96 26.57Q155.22 24.83 155.22 21.7Q155.22 18.47 157.1 16.57Q158.98 14.68 161.72 14.68Q164.56 14.68 166.12 16.37Q167.67 18.06 167.67 20.95ZM163.96 20.18Q163.96 17.39 161.7 17.39Q160.73 17.39 160.03 18.19Q159.32 18.99 159.17 20.18ZM183.04 27.53Q181.68 28.32 179.11 28.32Q176.12 28.32 174.26 26.5Q172.41 24.69 172.41 21.82Q172.41 18.5 174.4 16.59Q176.38 14.68 179.71 14.68Q182.01 14.68 183.04 15.29V18.69Q181.78 17.75 180.23 17.75Q178.5 17.75 177.5 18.76Q176.49 19.77 176.49 21.55Q176.49 23.28 177.45 24.26Q178.42 25.25 180.1 25.25Q181.6 25.25 183.04 24.31ZM176.9 33.73V31.97Q177.35 32.05 177.82 32.05Q179.38 32.05 179.38 31.12Q179.38 30.29 177.97 30.29Q177.81 30.29 177.5 30.31V28H179.68V29.04Q182.06 29.14 182.06 31.15Q182.06 33.78 178.02 33.78Q177.44 33.78 176.9 33.73ZM199.6 28H195.81V26.13H195.76Q194.45 28.32 191.89 28.32Q189.99 28.32 188.91 27.24Q187.82 26.17 187.82 24.38Q187.82 20.6 192.3 20.01L195.83 19.54Q195.83 17.41 193.52 17.41Q191.2 17.41 189.11 18.8V15.77Q189.94 15.34 191.4 15.01Q192.85 14.68 194.04 14.68Q199.6 14.68 199.6 20.23ZM195.83 22.72V21.84L193.47 22.15Q191.52 22.4 191.52 23.91Q191.52 24.6 191.99 25.04Q192.47 25.47 193.28 25.47Q194.41 25.47 195.12 24.69Q195.83 23.91 195.83 22.72ZM198.61 9Q198.61 10.77 197.91 11.74Q197.2 12.71 195.99 12.71Q194.89 12.71 193.85 12.17Q192.72 11.57 192.29 11.57Q191.28 11.57 191.28 12.94H189.49Q189.49 11.18 190.18 10.2Q190.88 9.22 192.14 9.22Q193.17 9.22 194.27 9.85Q195.28 10.4 195.8 10.4Q196.79 10.4 196.79 9ZM212.1 28.32Q208.85 28.32 206.99 26.5Q205.13 24.67 205.13 21.55Q205.13 18.33 207.06 16.5Q208.99 14.68 212.27 14.68Q215.51 14.68 217.35 16.5Q219.19 18.33 219.19 21.32Q219.19 24.56 217.3 26.44Q215.4 28.32 212.1 28.32ZM212.2 17.75Q210.78 17.75 209.99 18.73Q209.2 19.71 209.2 21.5Q209.2 25.25 212.22 25.25Q215.11 25.25 215.11 21.4Q215.11 17.75 212.2 17.75Z"/><path style="fill:var(--green)" d="M92.17 69V36.79H112.22V44.38H101.87V49.08H111.6V56.67H101.87V61.41H112.97V69ZM139.25 69 127.89 53.46Q126.54 51.62 125.69 50.13H125.6Q125.73 52.51 125.73 55.48V69H116.75V36.79H125.91L136.81 51.57Q137.01 51.86 137.3 52.27Q137.59 52.67 137.88 53.1Q138.18 53.52 138.43 53.93Q138.69 54.33 138.83 54.65H138.92Q138.78 53.66 138.78 51.23V36.79H147.77V69ZM153.3 69V36.79H173.36V44.38H163V49.08H172.73V56.67H163V61.41H174.1V69ZM207.37 69V51.35Q207.37 48.85 207.53 45.87L207.6 44.38H207.33Q206.61 48.18 206.23 49.64L201.49 69H192.37L187.4 49.86Q187.2 49.14 186.35 44.38H186.08Q186.39 51.93 186.39 53.82V69H177.88V36.79H192.41L196.84 54.29Q197 54.83 197.25 56.48Q197.51 58.13 197.58 59.03H197.71Q197.96 56.98 198.5 54.2L202.63 36.79H216.94V69Z"/></symbol></svg>
 <div class="topbar">
   <div class="topbar-in">
-    <button class="brand" id="home" type="button" title="Voltar ao início"><img class="logo" src="favicon.svg" width="28" height="28" alt=""><span>Correção <b>ENEM</b></span></button>
+    <button class="brand" id="home" type="button" title="Voltar ao início" aria-label="Correção ENEM, voltar ao início"><svg class="lockup" viewBox="0 0 222.1 72" aria-hidden="true"><use href="#lk"/></svg></button>
     <nav class="tabs hidden" id="tabs" role="tablist" aria-label="Áreas da prova"></nav>
     <div class="bar-act">
       <button class="btn sm hidden" id="hubBtn" type="button" data-act="hub" title="Voltar ao hub de provas">←&nbsp;<span class="lg">Voltar ao&nbsp;</span>hub</button>
-      <button class="btn pri sm" id="salvar" type="button" title="Tudo já é salvo automaticamente a cada marcação. Este botão só confirma.">Salvar</button>
       <button class="btn ic sm" id="tema" type="button" aria-label="Alternar tema claro e escuro" title="Alternar tema">◐</button>
     </div>
   </div>
@@ -582,7 +584,7 @@ function resumoGeral(){
 /* ---------- topo, abas, dock ---------- */
 function renderTopo(){
   const tabs=$("tabs"), ex=store.view==="exam";
-  tabs.classList.toggle("hidden",!ex); $("hubBtn").classList.toggle("hidden",!ex);
+  tabs.classList.toggle("hidden",!ex); $("hubBtn").classList.toggle("hidden",!ex); document.querySelector(".topbar").classList.toggle("hidden",!ex);
   if(!ex) return;
   const g=resumoGeral();
   let h="";
@@ -1377,7 +1379,7 @@ function dashLobby(){
   return `<details class="panel acc dashd" id="dashSec" ${aberto?"open":""} style="padding:0;margin-bottom:14px"><summary><span><b>📈 Seu desempenho</b> <small>${sub}</small></span></summary><div class="acc-b">${dashHtml(DASH_ESC,true)}</div></details>`;
 }
 function renderLobby(){
-  const ret=retomarHtml(); const main=$("main"); let h=`<header class="hero"><div class="hero-t"><img class="logo" src="favicon.svg" width="52" height="52" alt=""><h1 style="margin:0">Correção <em>ENEM</em></h1></div>
+  const ret=retomarHtml(); const main=$("main"); let h=`<header class="hero"><div class="hero-top"><h1 class="hero-lk" aria-label="Correção ENEM"><svg class="lockup big" viewBox="0 0 222.1 72" aria-hidden="true"><use href="#lk"/></svg></h1><button class="btn ic sm" type="button" data-act="tema" aria-label="Alternar tema claro e escuro" title="Alternar tema">◐</button></div>
     <p class="sub">Escolha a prova, faça o simulado e corrija aqui: nota TRI estimada, gabarito, enunciado e onde melhorar. Do ENEM 2025 ao 2009, só as provas que têm TRI.</p></header>
     ${ret.html}
     ${dashLobby()}
@@ -1433,6 +1435,7 @@ document.addEventListener("click",e=>{
     case "confOk": { const f=CONF_OK; CONF_OK=null; fecharModal(); if(f) f(); break; }
     case "paste": colar(a); break;
     case "pasteDia": colarDia(t.dataset.m); break;
+    case "tema": alternarTema(); break;
     case "enunq": abrirEnun(a,+t.dataset.j); break;
     case "simSetup": { const id=t.dataset.ex; if(store.sim&&store.sim.ex===id&&EX.dados&&store.exam===id){ simMontar(); break; } abrirExame(id).then(()=>{ if(!store.sim) abrirSetup(); }); break; }
     case "simEsc": { SIMCFG.esc=t.dataset.v; if(!SIMCFG.edit) SIMCFG.min=simMinPadrao(SIMCFG.esc); renderSetup(); break; }
@@ -1524,10 +1527,6 @@ function baixarBackup(){
   a.href=u; a.download="backup-correcao-enem.json"; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(u),2000); toast("Backup baixado. Guarde o arquivo em local seguro.");
 }
-$("salvar").onclick=()=>{
-  const ok=salvar(), h=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
-  toast(ok?`Salvo neste navegador às ${h}.`:"Não consegui salvar neste navegador (modo privado?). Baixe o backup.","Baixar backup");
-};
 $("bkFile").onchange=e=>{
   const f=e.target.files[0]; if(!f) return;
   const rd=new FileReader();
@@ -1547,12 +1546,11 @@ $("home").onclick=()=>{ store.view="lobby"; salvar(); renderAll(); window.scroll
 
 /* ---------- tema ---------- */
 function aplicaTema(t){ document.documentElement.setAttribute("data-theme",t); }
-(function(){
-  let t=null; try{ t=localStorage.getItem(KEY_TEMA); }catch(_){}
-  if(!t) t=(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";
-  aplicaTema(t);
-  $("tema").onclick=()=>{ t=t==="dark"?"light":"dark"; aplicaTema(t); try{localStorage.setItem(KEY_TEMA,t);}catch(_){} };
-})();
+let TEMA=null; try{ TEMA=localStorage.getItem(KEY_TEMA); }catch(_){}
+if(!TEMA) TEMA=(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";
+aplicaTema(TEMA);
+function alternarTema(){ TEMA=TEMA==="dark"?"light":"dark"; aplicaTema(TEMA); try{localStorage.setItem(KEY_TEMA,TEMA);}catch(_){} }
+$("tema").onclick=alternarTema;
 
 document.addEventListener("pointerdown",e=>{
   const dv=e.target.closest&&e.target.closest("#simDiv"); if(!dv||!store.sim) return; e.preventDefault();
